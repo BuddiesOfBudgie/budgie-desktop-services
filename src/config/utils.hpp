@@ -4,7 +4,6 @@
 #include <string>
 #include <toml.hpp>
 
-#include "displays/batch-system/enums.hpp"
 #include "format.hpp"
 
 namespace bd::ConfigUtils {
@@ -15,10 +14,4 @@ namespace bd::ConfigUtils {
 namespace bd::DisplayConfigurationUtils {
   DisplayRelativePosition getDisplayRelativePositionFromString(std::string_view& str);
   std::string             getDisplayRelativePositionString(DisplayRelativePosition pos);
-
-  // Anchoring conversion functions
-  ConfigurationHorizontalAnchor getHorizontalAnchorFromString(const std::string& str);
-  std::string                   getHorizontalAnchorString(ConfigurationHorizontalAnchor anchor);
-  ConfigurationVerticalAnchor   getVerticalAnchorFromString(const std::string& str);
-  std::string                   getVerticalAnchorString(ConfigurationVerticalAnchor anchor);
 }

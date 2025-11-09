@@ -18,14 +18,14 @@
 #include <QtCore/qcontainerfwd.h>
 
 /*
- * Adaptor class for interface org.buddiesofbudgie.BudgieDaemon.BatchSystem
+ * Adaptor class for interface org.buddiesofbudgie.Services.BatchSystem
  */
 class BatchSystemAdaptor: public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.BudgieDaemon.BatchSystem")
+    Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.BatchSystem")
     Q_CLASSINFO("D-Bus Introspection", ""
-"  <interface name=\"org.buddiesofbudgie.BudgieDaemon.BatchSystem\">\n"
+"  <interface name=\"org.buddiesofbudgie.Services.BatchSystem\">\n"
 "    <method name=\"ResetConfiguration\"/>\n"
 "    <method name=\"SetOutputEnabled\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"serial\"/>\n"
@@ -40,8 +40,8 @@ class BatchSystemAdaptor: public QDBusAbstractAdaptor
 "    <method name=\"SetOutputPositionAnchor\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"serial\"/>\n"
 "      <arg direction=\"in\" type=\"s\" name=\"relativeSerial\"/>\n"
-"      <arg direction=\"in\" type=\"i\" name=\"horizontalAnchor\"/>\n"
-"      <arg direction=\"in\" type=\"i\" name=\"verticalAnchor\"/>\n"
+"      <arg direction=\"in\" type=\"s\" name=\"horizontalAnchor\"/>\n"
+"      <arg direction=\"in\" type=\"s\" name=\"verticalAnchor\"/>\n"
 "    </method>\n"
 "    <method name=\"SetOutputScale\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"serial\"/>\n"
@@ -92,7 +92,7 @@ public Q_SLOTS: // METHODS
     void SetOutputEnabled(const QString &serial, bool enabled);
     void SetOutputMirrorOf(const QString &serial, const QString &mirrorSerial);
     void SetOutputMode(const QString &serial, int width, int height, qulonglong refreshRate);
-    void SetOutputPositionAnchor(const QString &serial, const QString &relativeSerial, int horizontalAnchor, int verticalAnchor);
+    void SetOutputPositionAnchor(const QString &serial, const QString &relativeSerial, const QString &horizontalAnchor, const QString &verticalAnchor);
     void SetOutputPrimary(const QString &serial);
     void SetOutputScale(const QString &serial, double scale);
     void SetOutputTransform(const QString &serial, uchar transform);

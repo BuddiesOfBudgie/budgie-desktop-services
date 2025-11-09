@@ -16,7 +16,7 @@ tasks:
   setup:
     desc: "Run cmake configuration"
     cmds:
-      - cmake -S . -B build -G Ninja
+      - cmake -DCMAKE_INSTALL_PREFIX=/usr -S . -B build -G Ninja
   build:
     desc: "Run cmake build"
     cmds:

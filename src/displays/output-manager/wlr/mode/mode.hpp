@@ -6,17 +6,17 @@
 #include "enums.hpp"
 #include "qwayland-wlr-output-management-unstable-v1.h"
 
-namespace bd {
-  class WaylandOutputMode : public QObject, public QtWayland::zwlr_output_mode_v1 {
+namespace bd::OutputManager::Wlr {
+  class Mode : public QObject, public QtWayland::zwlr_output_mode_v1 {
       Q_OBJECT
 
     public:
-      WaylandOutputMode(::zwlr_output_mode_v1* mode);
+      Mode(::zwlr_output_mode_v1* mode);
 
       std::optional<::zwlr_output_mode_v1*> getWlrMode();
 
     signals:
-      void propertyChanged(WaylandOutputMetaModeProperty property, const QVariant& value);
+      void propertyChanged(MetaModeProperty property, const QVariant& value);
       void modeFinished();
 
     protected:

@@ -18,14 +18,14 @@
 #include <QtCore/qcontainerfwd.h>
 
 /*
- * Adaptor class for interface org.buddiesofbudgie.BudgieDaemon.Displays
+ * Adaptor class for interface org.buddiesofbudgie.Services.Displays
  */
 class DisplaysAdaptor: public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.BudgieDaemon.Displays")
+    Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.Displays")
     Q_CLASSINFO("D-Bus Introspection", ""
-"  <interface name=\"org.buddiesofbudgie.BudgieDaemon.Displays\">\n"
+"  <interface name=\"org.buddiesofbudgie.Services.Displays\">\n"
 "    <method name=\"GetAvailableOutputs\">\n"
 "      <annotation value=\"QStringList\" name=\"org.qtproject.QtDBus.QtTypeName.Out0\"/>\n"
 "      <arg direction=\"out\" type=\"as\" name=\"outputSerials\"/>\n"

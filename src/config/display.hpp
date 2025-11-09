@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QObject>
+#include <toml.hpp>
 
-#include "displays/batch-system/enums.hpp"
+#include "displays/batch-system/enums/configurationanchors.hpp"
 #include "format.hpp"
-#include "utils.hpp"
 
 namespace bd {
   class DisplayConfig;
@@ -76,17 +76,17 @@ namespace bd {
     public:
       DisplayGroupOutputConfig(QObject* parent = nullptr);
 
-      bool                          getAdaptiveSync() const;
-      bool                          getDisabled() const;
-      int                           getHeight() const;
-      QString                       getRelativeOutput() const;
-      ConfigurationHorizontalAnchor getHorizontalAnchor() const;
-      ConfigurationVerticalAnchor   getVerticalAnchor() const;
-      qulonglong                    getRefresh() const;
-      int                           getRotation() const;
-      double                        getScale() const;
-      QString                       getIdentifier() const;
-      int                           getWidth() const;
+      bool                                                 getAdaptiveSync() const;
+      bool                                                 getDisabled() const;
+      int                                                  getHeight() const;
+      QString                                              getRelativeOutput() const;
+      bd::BatchSystem::ConfigurationHorizontalAnchor::Type getHorizontalAnchor() const;
+      bd::BatchSystem::ConfigurationVerticalAnchor::Type   getVerticalAnchor() const;
+      qulonglong                                           getRefresh() const;
+      int                                                  getRotation() const;
+      double                                               getScale() const;
+      QString                                              getIdentifier() const;
+      int                                                  getWidth() const;
 
       toml::ordered_value toToml();
 
@@ -95,24 +95,24 @@ namespace bd {
       void setHeight(int height);
       void setIdentifier(const QString& identifier);
       void setRelativeOutput(const QString& relativeOutput);
-      void setHorizontalAnchor(ConfigurationHorizontalAnchor horizontalAnchor);
-      void setVerticalAnchor(ConfigurationVerticalAnchor verticalAnchor);
+      void setHorizontalAnchor(bd::BatchSystem::ConfigurationHorizontalAnchor::Type horizontalAnchor);
+      void setVerticalAnchor(bd::BatchSystem::ConfigurationVerticalAnchor::Type verticalAnchor);
       void setRefresh(qulonglong refresh);
       void setRotation(int rotation);
       void setScale(double scale);
       void setWidth(int width);
 
     protected:
-      QString                       m_identifier;
-      int                           m_width;
-      int                           m_height;
-      qulonglong                    m_refresh;
-      QString                       m_relative_output;
-      ConfigurationHorizontalAnchor m_horizontal_anchor;
-      ConfigurationVerticalAnchor   m_vertical_anchor;
-      double                        m_scale;
-      int                           m_rotation;
-      bool                          m_adaptive_sync;
-      bool                          m_disabled;
+      QString                                              m_identifier;
+      int                                                  m_width;
+      int                                                  m_height;
+      qulonglong                                           m_refresh;
+      QString                                              m_relative_output;
+      bd::BatchSystem::ConfigurationHorizontalAnchor::Type m_horizontal_anchor;
+      bd::BatchSystem::ConfigurationVerticalAnchor::Type   m_vertical_anchor;
+      double                                               m_scale;
+      int                                                  m_rotation;
+      bool                                                 m_adaptive_sync;
+      bool                                                 m_disabled;
   };
 }

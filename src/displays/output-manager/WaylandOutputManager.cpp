@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace bd {
+namespace bd::OutputManager {
   WaylandOrchestrator::WaylandOrchestrator(QObject* parent)
       : QObject(parent), m_registry(nullptr), m_display(nullptr), m_manager(nullptr), m_has_serial(false), m_serial(0), m_has_initted(false) {}
 
@@ -88,10 +88,10 @@ namespace bd {
 
   // Overridden methods from QtWayland::zwlr_output_manager_v1
   void WaylandOutputManager::zwlr_output_manager_v1_head(zwlr_output_head_v1* wlr_head) {
-    auto head = new WaylandOutputMetaHead(nullptr, m_registry);
+    auto head = new bd::OutputManager::Wlr::MetaHead(nullptr, m_registry);
     qInfo() << "WaylandOutputManager::zwlr_output_manager_v1_head with id:" << head->getIdentifier() << ", description:" << head->getDescription();
 
-    connect(head, &WaylandOutputMetaHead::headAvailable, this, [this, head]() {
+    connect(head, &bd::OutputManager::Wlr::MetaHead::headAvailable, this, [this, head]() {
         qDebug() << "Head available for output: " << head->getIdentifier();
         bool headAlreadyExists = false;
         for (const auto& existingHead : m_heads) {
@@ -106,7 +106,7 @@ namespace bd {
 
         if (!headAlreadyExists) {
             qDebug() << "Adding new head for output: " << head->getIdentifier();
-            m_heads.append(QSharedPointer<WaylandOutputMetaHead>(head));
+            m_heads.append(QSharedPointer<bd::OutputManager::Wlr::MetaHead>(head));
         }
     });
 
@@ -176,11 +176,11 @@ namespace bd {
     return QSharedPointer<WaylandOutputConfiguration>(config);
   }
 
-  QList<QSharedPointer<WaylandOutputMetaHead>> WaylandOutputManager::getHeads() {
+  QList<QSharedPointer<bd::OutputManager::Wlr::MetaHead>> WaylandOutputManager::getHeads() {
     return m_heads;
   }
 
-  QSharedPointer<WaylandOutputMetaHead> WaylandOutputManager::getOutputHead(const QString& str) {
+  QSharedPointer<bd::OutputManager::Wlr::MetaHead> WaylandOutputManager::getOutputHead(const QString& str) {
     for (auto head : m_heads) {
       if (head->getIdentifier() == str) { return head; }
     }
@@ -201,7 +201,7 @@ namespace bd {
   WaylandOutputConfiguration::WaylandOutputConfiguration(QObject* parent, ::zwlr_output_configuration_v1* config)
       : QObject(parent), zwlr_output_configuration_v1(config) {}
 
-  QSharedPointer<WaylandOutputConfigurationHead> WaylandOutputConfiguration::enable(WaylandOutputMetaHead* head) {
+  QSharedPointer<WaylandOutputConfigurationHead> WaylandOutputConfiguration::enable(bd::OutputManager::Wlr::MetaHead* head) {
     auto wlrHeadOpt = head->getWlrHead();
     if (!wlrHeadOpt.has_value()) {
       qWarning() << "Tried to enable head, but wlr_head is not available";
@@ -214,14 +214,14 @@ namespace bd {
 
   void WaylandOutputConfiguration::applySelf() {
     apply();
-    wl_display_roundtrip(bd::WaylandOrchestrator::instance().getDisplay());
+    wl_display_roundtrip(bd::OutputManager::WaylandOrchestrator::instance().getDisplay());
   }
 
   void WaylandOutputConfiguration::release() {
     destroy();
   }
 
-  void WaylandOutputConfiguration::disable(WaylandOutputMetaHead* head) {
+  void WaylandOutputConfiguration::disable(bd::OutputManager::Wlr::MetaHead* head) {
     auto wlrHeadOpt = head->getWlrHead();
     if (!wlrHeadOpt.has_value()) {
       qWarning() << "Tried to disable head, but wlr_head is not available";
@@ -244,10 +244,10 @@ namespace bd {
 
   // Output Configuration Head
 
-  WaylandOutputConfigurationHead::WaylandOutputConfigurationHead(QObject* parent, WaylandOutputMetaHead* head, ::zwlr_output_configuration_head_v1* wlr_head)
+  WaylandOutputConfigurationHead::WaylandOutputConfigurationHead(QObject* parent, bd::OutputManager::Wlr::MetaHead* head, ::zwlr_output_configuration_head_v1* wlr_head)
       : QObject(parent), zwlr_output_configuration_head_v1(wlr_head), m_head(head) {}
 
-  WaylandOutputMetaHead* WaylandOutputConfigurationHead::getHead() {
+  bd::OutputManager::Wlr::MetaHead* WaylandOutputConfigurationHead::getHead() {
     return m_head;
   }
 
@@ -259,7 +259,7 @@ namespace bd {
     set_adaptive_sync(state);
   }
 
-  void WaylandOutputConfigurationHead::setMode(WaylandOutputMetaMode* mode) {
+  void WaylandOutputConfigurationHead::setMode(bd::OutputManager::Wlr::MetaMode* mode) {
     auto wlrModeOpt = mode->getWlrMode();
     if (wlrModeOpt == nullptr || (wlrModeOpt != nullptr && !wlrModeOpt.has_value())) {
       qWarning() << "Tried to set mode on configuration head, but mode is not available";

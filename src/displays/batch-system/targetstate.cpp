@@ -1,71 +1,73 @@
-#include "OutputTargetState.hpp"
+#include "targetstate.hpp"
 #include "utils.hpp"
 
-namespace bd {
-    OutputTargetState::OutputTargetState(QString serial, QObject *parent) : QObject(parent),
+namespace bd::BatchSystem {
+    TargetState::TargetState(QString serial, QObject *parent) : QObject(parent),
         m_serial(serial), m_on(false), m_dimensions(QSize(0, 0)), m_refresh(0), m_mirrorOf(""), m_relative(""), m_horizontal_anchor(ConfigurationHorizontalAnchor::NoHorizontalAnchor),
         m_vertical_anchor(ConfigurationVerticalAnchor::NoVerticalAnchor), m_primary(false), m_position(QPoint(0, 0)), m_scale(1.0), m_transform(0), m_adaptive_sync(0) {
     }
 
-    QString OutputTargetState::getSerial() const {
+    TargetState::~TargetState() = default;
+
+    QString TargetState::getSerial() const {
         return m_serial;
     }
 
-    bool OutputTargetState::isOn() const {
+    bool TargetState::isOn() const {
         return m_on;
     }
     
-    QSize OutputTargetState::getDimensions() const {
+    QSize TargetState::getDimensions() const {
         return m_dimensions;
     }
 
-    qulonglong OutputTargetState::getRefresh() const {
+    qulonglong TargetState::getRefresh() const {
         return m_refresh;
     }
 
-    QString OutputTargetState::getRelative() const {
+    QString TargetState::getRelative() const {
         return m_relative;
     }
     
-    ConfigurationHorizontalAnchor OutputTargetState::getHorizontalAnchor() const {
+    ConfigurationHorizontalAnchor::Type TargetState::getHorizontalAnchor() const {
         return m_horizontal_anchor;
     }
 
-    ConfigurationVerticalAnchor OutputTargetState::getVerticalAnchor() const {
+    ConfigurationVerticalAnchor::Type TargetState::getVerticalAnchor() const {
         return m_vertical_anchor;
     }
 
-    QPoint OutputTargetState::getPosition() const {
+    QPoint TargetState::getPosition() const {
         return m_position;
     }
 
-    bool OutputTargetState::isMirroring() const {
+    bool TargetState::isMirroring() const {
         return !m_mirrorOf.isEmpty();
     }
 
-    bool OutputTargetState::isPrimary() const {
+    bool TargetState::isPrimary() const {
         return m_primary;
     }
 
-    qreal OutputTargetState::getScale() const {
+    qreal TargetState::getScale() const {
         return m_scale;
     }
 
-    quint8 OutputTargetState::getTransform() const {
+    quint8 TargetState::getTransform() const {
         return m_transform;
     }
 
-    QSize OutputTargetState::getResultingDimensions() const {
+    QSize TargetState::getResultingDimensions() const {
         return m_resulting_dimensions;
     }
 
-    uint32_t OutputTargetState::getAdaptiveSync() const {
+    uint32_t TargetState::getAdaptiveSync() const {
         return m_adaptive_sync;
     }
 
-    void OutputTargetState::setDefaultValues(QSharedPointer<WaylandOutputMetaHead> head) {
+    void TargetState::setDefaultValues(QSharedPointer<bd::OutputManager::Wlr::MetaHead> head) {
         if (head.isNull()) return;
-        qDebug() << "OutputTargetState::setDefaultValues" << m_serial;
+        qDebug() << "TargetState::setDefaultValues" << m_serial;
         auto headData = head.data();
         m_on = headData->isEnabled();
 
@@ -104,26 +106,26 @@ namespace bd {
         m_vertical_anchor = headData->getVerticalAnchor();
         m_primary = headData->isPrimary();
 
-        qDebug() << "horizontalAnchor" << bd::DisplayConfigurationUtils::getHorizontalAnchorString(m_horizontal_anchor) << "\n" << "verticalAnchor" << bd::DisplayConfigurationUtils::getVerticalAnchorString(m_vertical_anchor) << "\n" << "primary" << m_primary;
+        qDebug() << "horizontalAnchor" << bd::BatchSystem::ConfigurationHorizontalAnchor::toString(m_horizontal_anchor) << "\n" << "verticalAnchor" << bd::BatchSystem::ConfigurationVerticalAnchor::toString(m_vertical_anchor) << "\n" << "primary" << m_primary;
     }
 
-    void OutputTargetState::setOn(bool on) {
-        qDebug() << "OutputTargetState::setOn" << m_serial << on;
+    void TargetState::setOn(bool on) {
+        qDebug() << "TargetState::setOn" << m_serial << on;
         m_on = on;
     }
 
-    void OutputTargetState::setDimensions(QSize dimensions) {
-        qDebug() << "OutputTargetState::setDimensions" << m_serial << dimensions;
+    void TargetState::setDimensions(QSize dimensions) {
+        qDebug() << "TargetState::setDimensions" << m_serial << dimensions;
         m_dimensions = dimensions;
     }
 
-    void OutputTargetState::setRefresh(qulonglong refresh) {
-        qDebug() << "OutputTargetState::setRefresh" << m_serial << refresh;
+    void TargetState::setRefresh(qulonglong refresh) {
+        qDebug() << "TargetState::setRefresh" << m_serial << refresh;
         m_refresh = refresh;
     }
 
-    void OutputTargetState::setMirrorOf(const QString& mirrorOf) {
-        qDebug() << "OutputTargetState::setMirrorOf" << m_serial << mirrorOf;
+    void TargetState::setMirrorOf(const QString& mirrorOf) {
+        qDebug() << "TargetState::setMirrorOf" << m_serial << mirrorOf;
         m_mirrorOf = mirrorOf;
         if (!m_mirrorOf.isEmpty()) {
             // If mirroring, unset any explicit relative target
@@ -134,8 +136,8 @@ namespace bd {
         }
     }
 
-    void OutputTargetState::setRelative(const QString& relative) {
-        qDebug() << "OutputTargetState::setRelative" << m_serial << relative;
+    void TargetState::setRelative(const QString& relative) {
+        qDebug() << "TargetState::setRelative" << m_serial << relative;
         m_relative = relative;
         if (!m_relative.isEmpty()) {
             // If relative is set, unset any mirror target
@@ -146,42 +148,42 @@ namespace bd {
         }
     }
     
-    void OutputTargetState::setHorizontalAnchor(ConfigurationHorizontalAnchor horizontal_anchor) {
-        qDebug() << "OutputTargetState::setHorizontalAnchor" << m_serial << bd::DisplayConfigurationUtils::getHorizontalAnchorString(horizontal_anchor);
+    void TargetState::setHorizontalAnchor(ConfigurationHorizontalAnchor::Type horizontal_anchor) {
+        qDebug() << "TargetState::setHorizontalAnchor" << m_serial << bd::BatchSystem::ConfigurationHorizontalAnchor::toString(horizontal_anchor);
         m_horizontal_anchor = horizontal_anchor;
     }
 
-    void OutputTargetState::setVerticalAnchor(ConfigurationVerticalAnchor vertical_anchor) {
-        qDebug() << "OutputTargetState::setVerticalAnchor" << m_serial << bd::DisplayConfigurationUtils::getVerticalAnchorString(vertical_anchor);
+    void TargetState::setVerticalAnchor(ConfigurationVerticalAnchor::Type vertical_anchor) {
+        qDebug() << "TargetState::setVerticalAnchor" << m_serial << bd::BatchSystem::ConfigurationVerticalAnchor::toString(vertical_anchor);
         m_vertical_anchor = vertical_anchor;
     }
 
-    void OutputTargetState::setPosition(QPoint position) {
-        qDebug() << "OutputTargetState::setPosition" << m_serial << position;
+    void TargetState::setPosition(QPoint position) {
+        qDebug() << "TargetState::setPosition" << m_serial << position;
         m_position = position;
     }
 
-    void OutputTargetState::setPrimary(bool primary) {
-        qDebug() << "OutputTargetState::setPrimary" << m_serial << primary;
+    void TargetState::setPrimary(bool primary) {
+        qDebug() << "TargetState::setPrimary" << m_serial << primary;
         m_primary = primary;
     }
 
-    void OutputTargetState::setScale(qreal scale) {
-        qDebug() << "OutputTargetState::setScale" << m_serial << scale;
+    void TargetState::setScale(qreal scale) {
+        qDebug() << "TargetState::setScale" << m_serial << scale;
         m_scale = scale;
     }
 
-    void OutputTargetState::setTransform(quint8 transform) {
-        qDebug() << "OutputTargetState::setTransform" << m_serial << transform;
+    void TargetState::setTransform(quint8 transform) {
+        qDebug() << "TargetState::setTransform" << m_serial << transform;
         m_transform = transform;
     }
 
-    void OutputTargetState::setAdaptiveSync(uint32_t adaptiveSync) {
-        qDebug() << "OutputTargetState::setAdaptiveSync" << m_serial << adaptiveSync;
+    void TargetState::setAdaptiveSync(uint32_t adaptiveSync) {
+        qDebug() << "TargetState::setAdaptiveSync" << m_serial << adaptiveSync;
         m_adaptive_sync = adaptiveSync;
     }
 
-    void OutputTargetState::updateResultingDimensions() {
+    void TargetState::updateResultingDimensions() {
         // TODO: See if this adjustment is even needed
         m_resulting_dimensions = (m_scale == 1.0) ? m_dimensions : m_dimensions * m_scale;
 

@@ -3,8 +3,6 @@
 #include "BatchSystemService.hpp"
 #include "DisplayService.hpp"
 #include "displays/output-manager/WaylandOutputManager.hpp"
-#include "displays/output-manager/head/WaylandOutputMetaHead.hpp"
-#include "displays/output-manager/mode/WaylandOutputMetaMode.hpp"
 
 namespace bd {
 
@@ -18,11 +16,11 @@ namespace bd {
   void DisplayObjectManager::onOutputManagerReady() {
     qInfo() << "Wayland Orchestrator ready";
     qInfo() << "Starting Display DBus Service now (outputs/modes)";
-    auto manager = WaylandOrchestrator::instance().getManager();
+    auto manager = OutputManager::WaylandOrchestrator::instance().getManager();
     if (!manager) return;
 
-    if (!QDBusConnection::sessionBus().registerService("org.buddiesofbudgie.BudgieDaemon")) {
-      qCritical() << "Failed to acquire DBus service name org.buddiesofbudgie.BudgieDaemon";
+    if (!QDBusConnection::sessionBus().registerService("org.buddiesofbudgie.Services")) {
+      qCritical() << "Failed to acquire DBus service name org.buddiesofbudgie.Services";
     }
 
     for (const auto& output : manager->getHeads()) {

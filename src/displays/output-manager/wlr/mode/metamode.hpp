@@ -6,15 +6,16 @@
 #include <QString>
 #include <optional>
 
-#include "WaylandOutputMode.hpp"
+#include "mode.hpp"
+#include "enums.hpp"
 
-namespace bd {
-    class WaylandOutputMetaMode : public QObject {
+namespace bd::OutputManager::Wlr {
+    class MetaMode : public QObject {
     Q_OBJECT
 
     public:
-        WaylandOutputMetaMode(QObject *parent, ::zwlr_output_mode_v1 *wlr_mode);
-        ~WaylandOutputMetaMode() override;
+        MetaMode(QObject *parent, ::zwlr_output_mode_v1 *wlr_mode);
+        ~MetaMode() override;
 
         QString getId();
 
@@ -28,7 +29,7 @@ namespace bd {
 
         std::optional<bool> isPreferred();
 
-        bool isSameAs(WaylandOutputMetaMode *mode);
+        bool isSameAs(MetaMode *mode);
 
         void setMode(::zwlr_output_mode_v1 *wlr_mode);
 
@@ -42,16 +43,16 @@ namespace bd {
 
         void modeNoLongerAvailable();
 
-        void propertyChanged(WaylandOutputMetaModeProperty property, const QVariant &value);
+        void propertyChanged(MetaModeProperty property, const QVariant &value);
 
     public slots:
 
         void modeDisconnected();
 
-        void setProperty(WaylandOutputMetaModeProperty property, const QVariant &value);
+        void setProperty(MetaModeProperty property, const QVariant &value);
 
     private:
-        QSharedPointer<WaylandOutputMode> m_mode;
+        QSharedPointer<bd::OutputManager::Wlr::Mode> m_mode;
         QString m_id;
         QSize m_size;
         qulonglong m_refresh;

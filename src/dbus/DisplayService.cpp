@@ -1,6 +1,6 @@
 #include "DisplayService.hpp"
 
-#include "displays/batch-system/ConfigurationBatchSystem.hpp"
+#include "displays/batch-system/outputbatchsystem.hpp"
 #include "displays/output-manager/WaylandOutputManager.hpp"
 
 namespace bd {
@@ -15,12 +15,12 @@ namespace bd {
 
   QStringList DisplayService::GetAvailableOutputs() {
     auto outputs = QStringList {};
-    for (const auto& output : WaylandOrchestrator::instance().getManager()->getHeads()) { outputs.append(output->getIdentifier()); }
+    for (const auto& output : bd::OutputManager::WaylandOrchestrator::instance().getManager()->getHeads()) { outputs.append(output->getIdentifier()); }
     return outputs;
   }
 
-  static QSharedPointer<WaylandOutputMetaHead> getPrimaryOrFirstHead() {
-    auto manager = WaylandOrchestrator::instance().getManager();
+  static QSharedPointer<bd::OutputManager::Wlr::MetaHead> getPrimaryOrFirstHead() {
+    auto manager = bd::OutputManager::WaylandOrchestrator::instance().getManager();
     if (!manager) return nullptr;
     const auto heads = manager->getHeads();
     if (heads.isEmpty()) return nullptr;
@@ -65,7 +65,7 @@ namespace bd {
 
   QVariantMap DisplayService::GetGlobalRect() {
     QVariantMap rect;
-    auto        calculationResult = ConfigurationBatchSystem::instance().getCalculationResult();
+    auto        calculationResult = bd::BatchSystem::OutputBatchSystem::instance().getCalculationResult();
     if (!calculationResult) return rect;
 
     auto globalSpace = calculationResult->getGlobalSpace();

@@ -1,7 +1,7 @@
 #pragma once
 
-namespace bd {
-  enum WaylandOutputMetaHeadProperty {
+namespace bd::OutputManager::Wlr {
+  enum MetaHeadProperty {
     AdaptiveSync,
     Description,
     Enabled,

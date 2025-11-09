@@ -1,16 +1,15 @@
-#include "WaylandOutputMetaHead.hpp"
-
 #include <QCryptographicHash>
 #include <QtAlgorithms>
 #include <optional>
 
-#include "SysInfo.hpp"
-#include "displays/output-manager/mode/WaylandOutputMetaMode.hpp"
-#include "output-manager/head/WaylandOutputHead.hpp"
+#include "sys/SysInfo.hpp"
+#include "displays/output-manager/wlr/head/metahead.hpp"
+#include "displays/output-manager/wlr/mode/metamode.hpp"
+#include "displays/output-manager/wlr/head/head.hpp"
 #include "config/utils.hpp"
 
-namespace bd {
-    WaylandOutputMetaHead::WaylandOutputMetaHead(QObject *parent, KWayland::Client::Registry *registry)
+namespace bd::OutputManager::Wlr {
+    MetaHead::MetaHead(QObject *parent, KWayland::Client::Registry *registry)
             : QObject(parent),
               m_registry(registry),
               m_current_mode(nullptr),
@@ -22,12 +21,12 @@ namespace bd {
               m_enabled(false),
               m_adaptive_sync(),
               m_relative_output(""),
-              m_horizontal_anchor(ConfigurationHorizontalAnchor::NoHorizontalAnchor),
-              m_vertical_anchor(ConfigurationVerticalAnchor::NoVerticalAnchor),
+              m_horizontal_anchor(bd::BatchSystem::ConfigurationHorizontalAnchor::NoHorizontalAnchor),
+              m_vertical_anchor(bd::BatchSystem::ConfigurationVerticalAnchor::NoVerticalAnchor),
               m_primary(false) {
     }
 
-    WaylandOutputMetaHead::~WaylandOutputMetaHead() {
+    MetaHead::~MetaHead() {
         for (auto &mode: m_output_modes) {
             if (!mode) continue;
             auto mode_ptr = mode.data();
@@ -38,23 +37,23 @@ namespace bd {
 
     // Getters
 
-    QtWayland::zwlr_output_head_v1::adaptive_sync_state WaylandOutputMetaHead::getAdaptiveSync() {
+    QtWayland::zwlr_output_head_v1::adaptive_sync_state MetaHead::getAdaptiveSync() {
         return m_adaptive_sync;
     }
 
-    QSharedPointer<WaylandOutputMetaMode> WaylandOutputMetaHead::getCurrentMode() {
+    QSharedPointer<bd::OutputManager::Wlr::MetaMode> MetaHead::getCurrentMode() {
         return m_current_mode;
     }
 
-    QString WaylandOutputMetaHead::getDescription() {
+    QString MetaHead::getDescription() {
         return m_description;
     }
 
-    QSharedPointer<WaylandOutputHead> WaylandOutputMetaHead::getHead() {
+    QSharedPointer<bd::OutputManager::Wlr::Head> MetaHead::getHead() {
         return m_head;
     }
 
-    QString WaylandOutputMetaHead::getIdentifier() {
+    QString MetaHead::getIdentifier() {
         // Have a valid serial, use that as the identifier
         if (!m_serial.isNull() && !m_serial.isEmpty()) {
             return m_serial;
@@ -77,7 +76,7 @@ namespace bd {
         return m_identifier;
     }
 
-    QSharedPointer<WaylandOutputMetaMode> WaylandOutputMetaHead::getModeForOutputHead(int width, int height, qulonglong refresh) {
+    QSharedPointer<bd::OutputManager::Wlr::MetaMode> MetaHead::getModeForOutputHead(int width, int height, qulonglong refresh) {
         for (const auto& mode_ptr: m_output_modes) {
             if (!mode_ptr) continue;
 
@@ -95,74 +94,74 @@ namespace bd {
         return nullptr;
     }
 
-    QList<QSharedPointer<WaylandOutputMetaMode>> WaylandOutputMetaHead::getModes() {
+    QList<QSharedPointer<bd::OutputManager::Wlr::MetaMode>> MetaHead::getModes() {
         return m_output_modes;
     }
 
-    QString WaylandOutputMetaHead::getMake() {
+    QString MetaHead::getMake() {
         return m_make;
     }
 
-    QString WaylandOutputMetaHead::getModel() {
+    QString MetaHead::getModel() {
         return m_model;
     }
 
-    QString WaylandOutputMetaHead::getName() {
+    QString MetaHead::getName() {
         return m_name;
     }
 
-    QPoint WaylandOutputMetaHead::getPosition() {
+    QPoint MetaHead::getPosition() {
         return m_position;
     }
 
-    double WaylandOutputMetaHead::getScale() {
+    double MetaHead::getScale() {
         return m_scale;
     }
 
-    int WaylandOutputMetaHead::getTransform() {
+    int MetaHead::getTransform() {
         return m_transform;
     }
 
-    std::optional<::zwlr_output_head_v1*> WaylandOutputMetaHead::getWlrHead() {
+    std::optional<::zwlr_output_head_v1*> MetaHead::getWlrHead() {
         if (!m_head) return std::nullopt;
         auto head = m_head.data()->getWlrHead();
         if (head == nullptr) return std::nullopt;
         return std::make_optional(head);
     }
 
-    bool WaylandOutputMetaHead::isAvailable() {
+    bool MetaHead::isAvailable() {
         return m_is_available;
     }
 
-    bool WaylandOutputMetaHead::isBuiltIn() {
+    bool MetaHead::isBuiltIn() {
         // Generate identifier if necessary
         getIdentifier();
         // Return if identifier exists
         return !m_identifier.isNull() && !m_identifier.isEmpty();
     }
 
-    bool WaylandOutputMetaHead::isEnabled() {
+    bool MetaHead::isEnabled() {
         return m_enabled;
     }
 
-    bool WaylandOutputMetaHead::isPrimary() {
+    bool MetaHead::isPrimary() {
         return m_primary;
     }
 
     // Setters
 
-    void WaylandOutputMetaHead::setHead(::zwlr_output_head_v1 *wlr_head) {
-        auto head = new WaylandOutputHead(this, wlr_head);
-        m_head = QSharedPointer<WaylandOutputHead>(head);
+    void MetaHead::setHead(::zwlr_output_head_v1 *wlr_head) {
+        auto head = new bd::OutputManager::Wlr::Head(this, wlr_head);
+        m_head = QSharedPointer<bd::OutputManager::Wlr::Head>(head);
         m_is_available = true;
         emit headAvailable();
-        connect(head, &WaylandOutputHead::headFinished, this, &WaylandOutputMetaHead::headDisconnected);
-        connect(head, &WaylandOutputHead::modeAdded, this, &WaylandOutputMetaHead::addMode);
-        connect(head, &WaylandOutputHead::modeChanged, this, &WaylandOutputMetaHead::currentModeChanged);
-        connect(head, &WaylandOutputHead::propertyChanged, this, &WaylandOutputMetaHead::setProperty);
+        connect(head, &bd::OutputManager::Wlr::Head::headFinished, this, &MetaHead::headDisconnected);
+        connect(head, &bd::OutputManager::Wlr::Head::modeAdded, this, &MetaHead::addMode);
+        connect(head, &bd::OutputManager::Wlr::Head::modeChanged, this, &MetaHead::currentModeChanged);
+        connect(head, &bd::OutputManager::Wlr::Head::propertyChanged, this, &MetaHead::setProperty);
     }
 
-    void WaylandOutputMetaHead::setPosition(QPoint position) {
+    void MetaHead::setPosition(QPoint position) {
         if (position.isNull()) {
             qWarning() << "Invalid position provided, not setting position on head: " << getIdentifier();
             return;
@@ -176,15 +175,15 @@ namespace bd {
         qDebug() << "Setting position on head" << getIdentifier() << "to" << m_position.x() << m_position.y();
         m_position.setX(position.x());
         m_position.setY(position.y());
-        emit propertyChanged(WaylandOutputMetaHeadProperty::Position, QVariant{m_position});
+        emit propertyChanged(MetaHeadProperty::Position, QVariant{m_position});
     }
 
-    void WaylandOutputMetaHead::setPrimary(bool primary) {
+    void MetaHead::setPrimary(bool primary) {
         if (m_primary == primary) return;
         m_primary = primary;
     }
 
-    void WaylandOutputMetaHead::unsetModes() {
+    void MetaHead::unsetModes() {
         qDebug() << "Unsetting modes for head: " << getIdentifier();
         for (const auto& mode_ptr: m_output_modes) {
             if (!mode_ptr) continue;
@@ -195,11 +194,11 @@ namespace bd {
 
     // Slots
 
-    QSharedPointer<WaylandOutputMetaMode> WaylandOutputMetaHead::addMode(::zwlr_output_mode_v1 *mode) {
-        auto output_mode = new WaylandOutputMetaMode(this, mode);
-        auto shared_ptr = QSharedPointer<WaylandOutputMetaMode>(output_mode);
+    QSharedPointer<bd::OutputManager::Wlr::MetaMode> MetaHead::addMode(::zwlr_output_mode_v1 *mode) {
+        auto output_mode = new bd::OutputManager::Wlr::MetaMode(this, mode);
+        auto shared_ptr = QSharedPointer<bd::OutputManager::Wlr::MetaMode>(output_mode);
 
-        connect(output_mode, &WaylandOutputMetaMode::done, this, [this, output_mode, shared_ptr]() {
+        connect(output_mode, &bd::OutputManager::Wlr::MetaMode::done, this, [this, output_mode, shared_ptr]() {
             // Check if this already exists
             for (const auto &mode_ptr: m_output_modes) {
                 if (!mode_ptr) continue;
@@ -227,7 +226,7 @@ namespace bd {
         return shared_ptr;
     }
 
-    void WaylandOutputMetaHead::currentModeChanged(::zwlr_output_mode_v1 *mode) {
+    void MetaHead::currentModeChanged(::zwlr_output_mode_v1 *mode) {
         qDebug() << "Current mode changed for output: " << getIdentifier();
         for (const auto &output_mode_ptr: m_output_modes) {
             if (!output_mode_ptr || output_mode_ptr.isNull()) continue;
@@ -276,52 +275,52 @@ namespace bd {
 //        }
     }
 
-    void WaylandOutputMetaHead::headDisconnected() {
+    void MetaHead::headDisconnected() {
         qDebug() << "Head disconnected for output: " << getIdentifier();
         m_head.clear();
         m_is_available = false;
         emit headNoLongerAvailable();
     }
 
-    void WaylandOutputMetaHead::setProperty(WaylandOutputMetaHeadProperty property, const QVariant &value) {
+    void MetaHead::setProperty(MetaHeadProperty property, const QVariant &value) {
         bool changed = true;
 
         switch (property) {
-            case WaylandOutputMetaHeadProperty::AdaptiveSync:
+            case MetaHeadProperty::AdaptiveSync:
                 m_adaptive_sync = static_cast<QtWayland::zwlr_output_head_v1::adaptive_sync_state>(value.toInt());
                 qDebug() << "Setting adaptive sync on head" << getIdentifier() << "to" << m_adaptive_sync;
                 break;
-            case WaylandOutputMetaHeadProperty::Description:
+            case MetaHeadProperty::Description:
                 m_description = value.toString();
                 qDebug() << "Output head finished, emitting headNoLongerAvailable: " << getIdentifier()
                          << " with description: " << m_description;
                 break;
-            case WaylandOutputMetaHeadProperty::Enabled:
+            case MetaHeadProperty::Enabled:
                 m_enabled = value.toBool();
                 qInfo() << "Setting enabled state on head" << getIdentifier() << "to" << m_enabled;
                 break;
-            case WaylandOutputMetaHeadProperty::Make:
+            case MetaHeadProperty::Make:
                 m_make = value.toString();
                 break;
-            case WaylandOutputMetaHeadProperty::Model:
+            case MetaHeadProperty::Model:
                 m_model = value.toString();
                 break;
-            case WaylandOutputMetaHeadProperty::Name:
+            case MetaHeadProperty::Name:
                 m_name = value.toString();
                 break;
-            case WaylandOutputMetaHeadProperty::Position:
+            case MetaHeadProperty::Position:
                 m_position = value.toPoint();
                 qDebug() << "Setting position on head" << getIdentifier() << "to" << m_position.x() << m_position.y();
                 break;
-            case WaylandOutputMetaHeadProperty::Scale:
+            case MetaHeadProperty::Scale:
                 m_scale = value.toDouble();
                 qDebug() << "Setting scale on head" << getIdentifier() << "to" << m_scale;
                 break;
-            case WaylandOutputMetaHeadProperty::SerialNumber:
+            case MetaHeadProperty::SerialNumber:
                 m_serial = value.toString();
                 qDebug() << "Setting serial number on head" << getIdentifier() << "to" << m_serial;
                 break;
-            case WaylandOutputMetaHeadProperty::Transform:
+            case MetaHeadProperty::Transform:
                 m_transform = value.toInt();
                 qDebug() << "Setting transform on head" << getIdentifier() << "to" << m_transform;
                 break;
@@ -335,32 +334,35 @@ namespace bd {
     }
 
     // Anchoring/relative configuration accessors
-    QString WaylandOutputMetaHead::getRelativeOutput() {
+    QString MetaHead::getRelativeOutput() {
         return m_relative_output;
     }
 
-    ConfigurationHorizontalAnchor WaylandOutputMetaHead::getHorizontalAnchor() {
+    bd::BatchSystem::ConfigurationHorizontalAnchor::Type MetaHead::getHorizontalAnchor() const {
         return m_horizontal_anchor;
     }
 
-    ConfigurationVerticalAnchor WaylandOutputMetaHead::getVerticalAnchor() {
+    bd::BatchSystem::ConfigurationVerticalAnchor::Type MetaHead::getVerticalAnchor() const {
         return m_vertical_anchor;
     }
 
-    void WaylandOutputMetaHead::setRelativeOutput(const QString &relative) {
+    void MetaHead::setRelativeOutput(const QString &relative) {
         m_relative_output = relative;
         qDebug() << "Relative output set for head" << getIdentifier() << "relative:" << m_relative_output;
     }
 
-    void WaylandOutputMetaHead::setHorizontalAnchoring(ConfigurationHorizontalAnchor horizontal) {
+    void MetaHead::setHorizontalAnchoring(bd::BatchSystem::ConfigurationHorizontalAnchor::Type horizontal) {
+        if (m_horizontal_anchor == horizontal) return;
         m_horizontal_anchor = horizontal;
         qDebug() << "Horizontal anchoring set for head" << getIdentifier()
-                 << "h:" << bd::DisplayConfigurationUtils::getHorizontalAnchorString(m_horizontal_anchor).c_str();
+                 << "h:" << bd::BatchSystem::ConfigurationHorizontalAnchor::toString(m_horizontal_anchor);
     }
 
-    void WaylandOutputMetaHead::setVerticalAnchoring(ConfigurationVerticalAnchor vertical) {
+
+    void MetaHead::setVerticalAnchoring(bd::BatchSystem::ConfigurationVerticalAnchor::Type vertical) {
+        if (m_vertical_anchor == vertical) return;
         m_vertical_anchor = vertical;
         qDebug() << "Vertical anchoring set for head" << getIdentifier()
-                 << "v:" << bd::DisplayConfigurationUtils::getVerticalAnchorString(m_vertical_anchor).c_str();
+                 << "v:" << bd::BatchSystem::ConfigurationVerticalAnchor::toString(m_vertical_anchor);
     }
 }

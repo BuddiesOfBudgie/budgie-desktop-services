@@ -3,14 +3,13 @@
 #include <QDBusConnection>
 #include <QString>
 
-#include "displays/output-manager/WaylandOutputManager.hpp"
-#include "displays/output-manager/head/WaylandOutputMetaHead.hpp"
-#include "displays/output-manager/mode/WaylandOutputMetaMode.hpp"
+#include "displays/output-manager/wlr/head/metahead.hpp"
+#include "displays/output-manager/wlr/mode/metamode.hpp"
 
 namespace bd {
-  OutputModeService::OutputModeService(QSharedPointer<WaylandOutputMetaMode> mode, const QString& outputId, QObject* parent)
+  OutputModeService::OutputModeService(QSharedPointer<bd::OutputManager::Wlr::MetaMode> mode, const QString& outputId, QObject* parent)
       : QObject(parent), m_mode(mode), m_outputId(outputId) {
-    QString objectPath = QString("/org/buddiesofbudgie/BudgieDaemon/Displays/Outputs/%1/Modes/%2").arg(outputId).arg(mode->getId());
+    QString objectPath = QString("/org/buddiesofbudgie/Services/Displays/Outputs/%1/Modes/%2").arg(outputId).arg(mode->getId());
     m_adaptor          = new OutputModeAdaptor(this);
     QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAdaptors);
   }
@@ -41,7 +40,7 @@ namespace bd {
     return isCurrentMode();
   }
   bool OutputModeService::isCurrentMode() const {
-    auto head = qobject_cast<WaylandOutputMetaHead*>(m_mode->parent());
+    auto head = qobject_cast<bd::OutputManager::Wlr::MetaHead*>(m_mode->parent());
     if (!head) return false;
     auto currentMode = head->getCurrentMode();
     if (!currentMode) return false;

@@ -1,7 +1,7 @@
 #pragma once
 #include <QSharedPointer>
 
-#include "displays/output-manager/mode/WaylandOutputMetaMode.hpp"
+#include "displays/output-manager/wlr/mode/metamode.hpp"
 #include "generated/OutputModeAdaptorGen.h"
 
 namespace bd {
@@ -13,7 +13,7 @@ namespace bd {
       Q_PROPERTY(bool Preferred READ Preferred)
       Q_PROPERTY(bool Current READ Current)
     public:
-      OutputModeService(QSharedPointer<WaylandOutputMetaMode> mode, const QString& outputId, QObject* parent = nullptr);
+      OutputModeService(QSharedPointer<bd::OutputManager::Wlr::MetaMode> mode, const QString& outputId, QObject* parent = nullptr);
       ~OutputModeService();
 
       // Property getters
@@ -27,9 +27,9 @@ namespace bd {
       Q_INVOKABLE QVariantMap GetModeInfo();
 
     private:
-      QSharedPointer<WaylandOutputMetaMode> m_mode;
-      OutputModeAdaptor*                    m_adaptor;
-      QString                               m_outputId;
-      bool                                  isCurrentMode() const;
+      QSharedPointer<bd::OutputManager::Wlr::MetaMode> m_mode;
+      OutputModeAdaptor*                               m_adaptor;
+      QString                                          m_outputId;
+      bool                                             isCurrentMode() const;
   };
 }

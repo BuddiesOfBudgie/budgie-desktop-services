@@ -1,8 +1,7 @@
 #pragma once
 #include <QSharedPointer>
 
-#include "DisplaySchemaTypes.hpp"
-#include "displays/output-manager/head/WaylandOutputMetaHead.hpp"
+#include "displays/output-manager/wlr/head/metahead.hpp"
 #include "generated/OutputAdaptorGen.h"
 
 namespace bd {
@@ -24,11 +23,11 @@ namespace bd {
       Q_PROPERTY(uint AdaptiveSync READ AdaptiveSync)
       Q_PROPERTY(bool Primary READ Primary)
       Q_PROPERTY(QString MirrorOf READ MirrorOf)
-      Q_PROPERTY(int HorizontalAnchor READ HorizontalAnchor)
-      Q_PROPERTY(int VerticalAnchor READ VerticalAnchor)
+      Q_PROPERTY(QString HorizontalAnchor READ HorizontalAnchor)
+      Q_PROPERTY(QString VerticalAnchor READ VerticalAnchor)
       Q_PROPERTY(QString RelativeTo READ RelativeTo)
     public:
-      OutputService(QSharedPointer<WaylandOutputMetaHead> output, QObject* parent = nullptr);
+      OutputService(QSharedPointer<OutputManager::Wlr::MetaHead> output, QObject* parent = nullptr);
       ~OutputService();
 
       // Property getters
@@ -48,8 +47,8 @@ namespace bd {
       uint       AdaptiveSync() const;
       bool       Primary() const;
       QString    MirrorOf() const;
-      int        HorizontalAnchor() const;
-      int        VerticalAnchor() const;
+      QString    HorizontalAnchor() const;
+      QString    VerticalAnchor() const;
       QString    RelativeTo() const;
 
       // D-Bus methods
@@ -57,7 +56,7 @@ namespace bd {
       Q_INVOKABLE QString     GetCurrentMode();
 
     private:
-      QSharedPointer<WaylandOutputMetaHead> m_output;
-      OutputAdaptor*                        m_adaptor;
+      QSharedPointer<OutputManager::Wlr::MetaHead> m_output;
+      OutputAdaptor*                               m_adaptor;
   };
 }

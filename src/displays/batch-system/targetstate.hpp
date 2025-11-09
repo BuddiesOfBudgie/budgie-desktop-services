@@ -5,16 +5,17 @@
 #include <QPoint>
 #include <QRect>
 #include <QSharedPointer>
-#include <output-manager/head/WaylandOutputMetaHead.hpp>
 
-#include "enums.hpp"
+#include "displays/output-manager/wlr/head/metahead.hpp"
+#include "enums/configurationanchors.hpp"
 
-namespace bd {
-    class OutputTargetState : public QObject {
+namespace bd::BatchSystem {
+    class TargetState : public QObject {
         Q_OBJECT
 
     public:
-        OutputTargetState(QString serial, QObject *parent = nullptr);
+        TargetState(QString serial, QObject *parent = nullptr);
+        ~TargetState() override;
 
         QString getSerial() const;
         bool isOn() const;
@@ -22,8 +23,8 @@ namespace bd {
         QString getMirrorOf() const;
         qulonglong getRefresh() const;
         QString getRelative() const;
-        ConfigurationHorizontalAnchor getHorizontalAnchor() const;
-        ConfigurationVerticalAnchor getVerticalAnchor() const;
+        ConfigurationHorizontalAnchor::Type getHorizontalAnchor() const;
+        ConfigurationVerticalAnchor::Type getVerticalAnchor() const;
         QPoint getPosition() const;
         bool isMirroring() const;
         bool isPrimary() const;
@@ -32,15 +33,15 @@ namespace bd {
         QSize getResultingDimensions() const;
         uint32_t getAdaptiveSync() const;
 
-        void setDefaultValues(QSharedPointer<WaylandOutputMetaHead> head);
+        void setDefaultValues(QSharedPointer<bd::OutputManager::Wlr::MetaHead> head);
 
         void setOn(bool on);
         void setDimensions(QSize dimensions);
         void setRefresh(qulonglong refresh);
         void setMirrorOf(const QString& mirrorOf);
         void setRelative(const QString& relative);
-        void setHorizontalAnchor(ConfigurationHorizontalAnchor horizontal_anchor);
-        void setVerticalAnchor(ConfigurationVerticalAnchor vertical_anchor);
+        void setHorizontalAnchor(ConfigurationHorizontalAnchor::Type horizontal_anchor);
+        void setVerticalAnchor(ConfigurationVerticalAnchor::Type vertical_anchor);
         void setPosition(QPoint position);
         void setPrimary(bool primary);
         void setScale(qreal scale);
@@ -57,8 +58,8 @@ namespace bd {
         qulonglong m_refresh;
         QString m_mirrorOf;
         QString m_relative;
-        ConfigurationHorizontalAnchor m_horizontal_anchor;
-        ConfigurationVerticalAnchor m_vertical_anchor;
+        ConfigurationHorizontalAnchor::Type m_horizontal_anchor;
+        ConfigurationVerticalAnchor::Type m_vertical_anchor;
         bool m_primary;
         QPoint m_position;
         qreal m_scale;

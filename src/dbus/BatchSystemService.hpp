@@ -3,7 +3,7 @@
 
 #include "generated/BatchSystemAdaptorGen.h"
 
-#define BATCH_SYSTEM_SERVICE_PATH "/org/buddiesofbudgie/BudgieDaemon/Displays/BatchSystem"
+#define BATCH_SYSTEM_SERVICE_PATH "/org/buddiesofbudgie/Services/Displays/BatchSystem"
 
 namespace bd {
   class BatchSystemService : public QObject {
@@ -15,17 +15,17 @@ namespace bd {
       BatchSystemAdaptor*        GetAdaptor();
 
     public slots:
-      void         ResetConfiguration();
-      void         SetOutputEnabled(const QString& serial, bool enabled);
-      void         SetOutputMode(const QString& serial, int width, int height, qulonglong refreshRate);
-      void         SetOutputPositionAnchor(const QString& serial, const QString& relativeSerial, int horizontalAnchor, int verticalAnchor);
-      void         SetOutputScale(const QString& serial, double scale);
-      void         SetOutputTransform(const QString& serial, quint8 transform);
-      void         SetOutputAdaptiveSync(const QString& serial, uint adaptiveSync);
-      void         SetOutputPrimary(const QString& serial);
-      void         SetOutputMirrorOf(const QString& serial, const QString& mirrorSerial);
-      QVariantMap  CalculateConfiguration();
-      bool         ApplyConfiguration();
+      void        ResetConfiguration();
+      void        SetOutputEnabled(const QString& serial, bool enabled);
+      void        SetOutputMode(const QString& serial, int width, int height, qulonglong refreshRate);
+      void        SetOutputPositionAnchor(const QString& serial, const QString& relativeSerial, const QString& horizontalAnchor, const QString& verticalAnchor);
+      void        SetOutputScale(const QString& serial, double scale);
+      void        SetOutputTransform(const QString& serial, quint8 transform);
+      void        SetOutputAdaptiveSync(const QString& serial, uint adaptiveSync);
+      void        SetOutputPrimary(const QString& serial);
+      void        SetOutputMirrorOf(const QString& serial, const QString& mirrorSerial);
+      QVariantMap CalculateConfiguration();
+      bool        ApplyConfiguration();
       QVariantList GetActions();
 
     signals:

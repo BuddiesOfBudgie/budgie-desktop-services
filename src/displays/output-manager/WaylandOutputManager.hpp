@@ -6,13 +6,13 @@
 
 #include <QObject>
 
-#include "head/WaylandOutputMetaHead.hpp"
+#include "displays/output-manager/wlr/head/metahead.hpp"
 #include "qwayland-wlr-output-management-unstable-v1.h"
 
-namespace bd {
+namespace bd::OutputManager {
   class WaylandOrchestrator;
   class WaylandOutputManager;
-  class WaylandOutputMetaHead;
+  class WlrOutputMetaHead;
   class WaylandOutputConfiguration;
   class WaylandOutputConfigurationHead;
   class WaylandOutputMetaMode;
@@ -58,8 +58,8 @@ namespace bd {
       //      static WaylandOutputManager& instance();
 
       QSharedPointer<WaylandOutputConfiguration>            configure();
-      QList<QSharedPointer<WaylandOutputMetaHead>>          getHeads();
-      QSharedPointer<WaylandOutputMetaHead>                 getOutputHead(const QString& str);
+      QList<QSharedPointer<bd::OutputManager::Wlr::MetaHead>>          getHeads();
+      QSharedPointer<bd::OutputManager::Wlr::MetaHead>                 getOutputHead(const QString& str);
       QList<QSharedPointer<WaylandOutputConfigurationHead>> applyNoOpConfigurationForNonSpecifiedHeads(
           WaylandOutputConfiguration* config,
           const QStringList&          identifiers);
@@ -77,7 +77,7 @@ namespace bd {
 
     private:
       KWayland::Client::Registry*                   m_registry;
-      QList<QSharedPointer<WaylandOutputMetaHead>> m_heads;
+      QList<QSharedPointer<bd::OutputManager::Wlr::MetaHead>> m_heads;
       uint32_t                                      m_serial;
       bool                                          m_has_serial;
       uint32_t                                      m_version;
@@ -90,8 +90,8 @@ namespace bd {
       WaylandOutputConfiguration(QObject* parent, ::zwlr_output_configuration_v1* config);
 
       void                                            applySelf();
-      QSharedPointer<WaylandOutputConfigurationHead> enable(WaylandOutputMetaHead* head);
-      void                                            disable(WaylandOutputMetaHead* head);
+      QSharedPointer<WaylandOutputConfigurationHead> enable(bd::OutputManager::Wlr::MetaHead* head);
+      void                                            disable(bd::OutputManager::Wlr::MetaHead* head);
       void                                            release();
 
     signals:
@@ -109,17 +109,17 @@ namespace bd {
       Q_OBJECT
 
     public:
-      WaylandOutputConfigurationHead(QObject* parent, WaylandOutputMetaHead* head, ::zwlr_output_configuration_head_v1* config_head);
-      WaylandOutputMetaHead* getHead();
+      WaylandOutputConfigurationHead(QObject* parent, bd::OutputManager::Wlr::MetaHead* head, ::zwlr_output_configuration_head_v1* config_head);
+      bd::OutputManager::Wlr::MetaHead* getHead();
       void                   release();
       void                   setAdaptiveSync(uint32_t state);
-      void                   setMode(WaylandOutputMetaMode* mode);
+      void                   setMode(bd::OutputManager::Wlr::MetaMode* mode);
       void                   setCustomMode(int32_t width, int32_t height, qulonglong refresh);
       void                   setPosition(int32_t x, int32_t y);
       void                   setTransform(quint8 transform);
       void                   setScale(double scale);
 
     private:
-      WaylandOutputMetaHead* m_head;
+      bd::OutputManager::Wlr::MetaHead* m_head;
   };
 }

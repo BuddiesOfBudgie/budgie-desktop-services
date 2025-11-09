@@ -5,17 +5,17 @@
 #include "enums.hpp"
 #include "qwayland-wlr-output-management-unstable-v1.h"
 
-namespace bd {
-  class WaylandOutputHead : public QObject, QtWayland::zwlr_output_head_v1 {
+namespace bd::OutputManager::Wlr {
+  class Head : public QObject, QtWayland::zwlr_output_head_v1 {
       Q_OBJECT
 
     public:
-      WaylandOutputHead(QObject* parent, ::zwlr_output_head_v1* wlr_head);
+      Head(QObject* parent, ::zwlr_output_head_v1* wlr_head);
 
       ::zwlr_output_head_v1* getWlrHead();
 
     signals:
-      void propertyChanged(WaylandOutputMetaHeadProperty property, const QVariant& value);
+      void propertyChanged(MetaHeadProperty property, const QVariant& value);
       void headFinished();
       void modeAdded(::zwlr_output_mode_v1* mode);
       void modeChanged(::zwlr_output_mode_v1* mode);

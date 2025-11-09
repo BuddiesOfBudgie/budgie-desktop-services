@@ -21,22 +21,23 @@ int main(int argc, char* argv[]) {
 
   bd::DisplayConfig::instance().parseConfig();
   bd::DisplayConfig::instance().debugOutput();
-  auto& orchestrator = bd::WaylandOrchestrator::instance();
+  auto& orchestrator = bd::OutputManager::WaylandOrchestrator::instance();
 
-  app.connect(&orchestrator, &bd::WaylandOrchestrator::orchestratorInitFailed, [](const QString& error) {
+  app.connect(&orchestrator, &bd::OutputManager::WaylandOrchestrator::orchestratorInitFailed, [](const QString& error) {
     qFatal() << "Failed to initialize Wayland Orchestrator: " << error;
   });
 
-  app.connect(&orchestrator, &bd::WaylandOrchestrator::ready, &bd::DisplayConfig::instance(), &bd::DisplayConfig::apply);
+  app.connect(&orchestrator, &bd::OutputManager::WaylandOrchestrator::ready, &bd::DisplayConfig::instance(), &bd::DisplayConfig::apply);
 
   bd::DisplayService     displayService;
   bd::BatchSystemService batchSystemService;
 
-  app.connect(&orchestrator, &bd::WaylandOrchestrator::ready, &bd::DisplayObjectManager::instance(), &bd::DisplayObjectManager::onOutputManagerReady);
+  app.connect(
+      &orchestrator, &bd::OutputManager::WaylandOrchestrator::ready, &bd::DisplayObjectManager::instance(), &bd::DisplayObjectManager::onOutputManagerReady);
 
   orchestrator.init();
 
-  wl_display_roundtrip(bd::WaylandOrchestrator::instance().getDisplay());
+  wl_display_roundtrip(bd::OutputManager::WaylandOrchestrator::instance().getDisplay());
 
   return app.exec();
 }

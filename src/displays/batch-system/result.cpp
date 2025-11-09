@@ -1,26 +1,29 @@
-#include "CalculationResult.hpp"
 #include <QVariantMap>
 #include <QVariant>
 
-namespace bd {
-    CalculationResult::CalculationResult(QObject *parent) : QObject(parent),
+#include "result.hpp"
+
+namespace bd::BatchSystem {
+    Result::Result(QObject *parent) : QObject(parent),
         m_global_space(QSharedPointer<QRect>(new QRect(0, 0, 0, 0))),
-        m_output_states(QMap<QString, QSharedPointer<OutputTargetState>>()) {
+        m_output_states(QMap<QString, QSharedPointer<TargetState>>()) {
     }
 
-    QSharedPointer<QRect> CalculationResult::getGlobalSpace() const {
+    Result::~Result() = default;
+
+    QSharedPointer<QRect> Result::getGlobalSpace() const {
         return m_global_space;
     }
 
-    QMap<QString, QSharedPointer<OutputTargetState>> CalculationResult::getOutputStates() const {
+    QMap<QString, QSharedPointer<TargetState>> Result::getOutputStates() const {
         return m_output_states;
     }
 
-    void CalculationResult::setOutputState(QString serial, QSharedPointer<OutputTargetState> output_state) {
+    void Result::setOutputState(QString serial, QSharedPointer<TargetState> output_state) {
         m_output_states.insert(serial, output_state);
     }
 
-    QVariantMap CalculationResult::toVariantMap() const {
+    QVariantMap Result::toVariantMap() const {
         QVariantMap map;
         // Serialize globalSpace
         if (m_global_space) {
@@ -39,8 +42,8 @@ namespace bd {
             out["on"] = state->isOn();
             out["dimensions"] = QVariant::fromValue(state->getDimensions());
             out["refresh"] = state->getRefresh();
-            out["horizontalAnchor"] = static_cast<int>(state->getHorizontalAnchor());
-            out["verticalAnchor"] = static_cast<int>(state->getVerticalAnchor());
+            out["horizontalAnchor"] = bd::BatchSystem::ConfigurationHorizontalAnchor::toString(state->getHorizontalAnchor());
+            out["verticalAnchor"] = bd::BatchSystem::ConfigurationVerticalAnchor::toString(state->getVerticalAnchor());
             out["position"] = QVariant::fromValue(state->getPosition());
             out["primary"] = state->isPrimary();
             out["scale"] = state->getScale();

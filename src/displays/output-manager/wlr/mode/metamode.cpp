@@ -1,46 +1,46 @@
 #include <QPointer>
-#include "WaylandOutputMetaMode.hpp"
+#include "metamode.hpp"
 
-namespace bd {
-    WaylandOutputMetaMode::WaylandOutputMetaMode(QObject *parent, ::zwlr_output_mode_v1 *wlr_mode)
-            : QObject(parent), m_id(QString()), m_mode(QSharedPointer<WaylandOutputMode>(nullptr)), m_refresh(0), m_preferred(std::nullopt), m_size(QSize{0, 0}),
+namespace bd::OutputManager::Wlr {
+    MetaMode::MetaMode(QObject *parent, ::zwlr_output_mode_v1 *wlr_mode)
+            : QObject(parent), m_id(QString()), m_mode(QSharedPointer<Mode>(nullptr)), m_refresh(0), m_preferred(std::nullopt), m_size(QSize{0, 0}),
               m_is_available(std::nullopt) {
         setMode(wlr_mode);
     }
 
-    WaylandOutputMetaMode::~WaylandOutputMetaMode() {
+    MetaMode::~MetaMode() {
         unsetMode(); // Unset the mode to ensure no references are held
         m_preferred = std::nullopt; // Clear preferred state
     }
 
-    QString WaylandOutputMetaMode::getId() {
+    QString MetaMode::getId() {
         return m_id;
     }
 
-    std::optional<qulonglong> WaylandOutputMetaMode::getRefresh() {
+    std::optional<qulonglong> MetaMode::getRefresh() {
         if (m_refresh == 0) return std::nullopt;
         return std::make_optional(m_refresh);
     }
 
-    std::optional<QSize> WaylandOutputMetaMode::getSize() {
+    std::optional<QSize> MetaMode::getSize() {
         if (m_size.isEmpty() || m_size.isNull()) return std::nullopt;
         return std::make_optional(m_size);
     }
 
-    std::optional<const ::zwlr_output_mode_v1*> WaylandOutputMetaMode::getWlrMode() {
+    std::optional<const ::zwlr_output_mode_v1*> MetaMode::getWlrMode() {
         if (!m_mode || m_mode.isNull()) return std::nullopt;
         return m_mode->getWlrMode();
     }
 
-    std::optional<bool> WaylandOutputMetaMode::isAvailable() {
+    std::optional<bool> MetaMode::isAvailable() {
         return m_is_available;
     }
 
-    std::optional<bool> WaylandOutputMetaMode::isPreferred() {
+    std::optional<bool> MetaMode::isPreferred() {
         return m_preferred;
     }
 
-    bool WaylandOutputMetaMode::isSameAs(WaylandOutputMetaMode *mode) {
+    bool MetaMode::isSameAs(MetaMode *mode) {
         if (mode == nullptr) { return false; }
 
         auto r_refresh = mode->getRefresh();
@@ -65,7 +65,7 @@ namespace bd {
 
     // Setters
 
-    void WaylandOutputMetaMode::setMode(::zwlr_output_mode_v1 *wlr_mode) {
+    void MetaMode::setMode(::zwlr_output_mode_v1 *wlr_mode) {
         if (wlr_mode == nullptr) {
             qWarning() << "Received null wlr_mode, doing nothing.";
             return;
@@ -73,15 +73,15 @@ namespace bd {
         unsetMode(); // Unset any existing mode
 
         qDebug() << "Setting new mode with Wayland object:" << (void*)wlr_mode;
-        auto mode = new WaylandOutputMode(wlr_mode);
-        m_mode = QSharedPointer<WaylandOutputMode>(mode);
-//        connect(mode, &WaylandOutputMode::modeFinished, this, &WaylandOutputMetaMode::modeDisconnected);
+        auto mode = new Mode(wlr_mode);
+        m_mode = QSharedPointer<Mode>(mode);
+//        connect(mode, &Mode::modeFinished, this, &MetaMode::modeDisconnected);
 
-        connect(mode, &WaylandOutputMode::propertyChanged,
-                this, &WaylandOutputMetaMode::setProperty);
+        connect(mode, &Mode::propertyChanged,
+                this, &MetaMode::setProperty);
     }
 
-    void WaylandOutputMetaMode::unsetMode() {
+    void MetaMode::unsetMode() {
         if (!m_mode.isNull()) {
             m_mode.clear();
         }
@@ -90,27 +90,27 @@ namespace bd {
 
     // Slots
 
-    void WaylandOutputMetaMode::modeDisconnected() {
+    void MetaMode::modeDisconnected() {
         unsetMode();
         emit modeNoLongerAvailable();
         m_is_available = std::make_optional<bool>(false);
     }
 
-    void WaylandOutputMetaMode::setPreferred(bool preferred) {
+    void MetaMode::setPreferred(bool preferred) {
         m_preferred = std::make_optional<bool>(preferred);
-        emit propertyChanged(WaylandOutputMetaModeProperty::Preferred, QVariant::fromValue(preferred));
+        emit propertyChanged(MetaModeProperty::Preferred, QVariant::fromValue(preferred));
     }
 
-    void WaylandOutputMetaMode::setProperty(WaylandOutputMetaModeProperty property, const QVariant &value) {
+    void MetaMode::setProperty(MetaModeProperty property, const QVariant &value) {
         bool changed = true;
         switch (property) {
-            case WaylandOutputMetaModeProperty::Preferred:
+            case MetaModeProperty::Preferred:
                 m_preferred = std::make_optional<bool>(value.toBool());
                 break;
-            case WaylandOutputMetaModeProperty::Refresh:
+            case MetaModeProperty::Refresh:
                 m_refresh = static_cast<qulonglong>(value.toULongLong());
                 break;
-            case WaylandOutputMetaModeProperty::Size:
+            case MetaModeProperty::Size:
                 m_size = value.toSize();
                 break;
             default:

@@ -1,26 +1,27 @@
-#include "ConfigurationBatchSystem.hpp"
-#include <output-manager/WaylandOutputManager.hpp>
-#include <config/display.hpp>
 #include <QSet>
 #include <QRect>
 #include <QStringList>
 #include <QDebug>
 
-namespace bd {
-    ConfigurationBatchSystem::ConfigurationBatchSystem(QObject *parent) : QObject(parent),
-        m_calculation_result(QSharedPointer<CalculationResult>()),
+#include "config/display.hpp"
+#include "output-manager/WaylandOutputManager.hpp"
+#include "outputbatchsystem.hpp"
+
+namespace bd::BatchSystem {
+    OutputBatchSystem::OutputBatchSystem(QObject *parent) : QObject(parent),
+        m_calculation_result(QSharedPointer<Result>()),
         m_actions(QList<QSharedPointer<ConfigurationAction>>()) {
     }
 
-    ConfigurationBatchSystem& ConfigurationBatchSystem::instance() {
-        static ConfigurationBatchSystem _instance(nullptr);
+    OutputBatchSystem& OutputBatchSystem::instance() {
+        static OutputBatchSystem _instance(nullptr);
         return _instance;
     }
 
-    void ConfigurationBatchSystem::addAction(QSharedPointer<ConfigurationAction> action) {
+    void OutputBatchSystem::addAction(QSharedPointer<ConfigurationAction> action) {
 
         // If the action is to turn off the head, remove any actions related to the head
-        if (action->getActionType() == ConfigurationActionType::SetOnOff && !action->isOn()) {
+        if (action->getActionType() == ConfigurationActionType::Type::SetOnOff && !action->isOn()) {
             for (auto action : m_actions) {
                 if (action->getSerial() == action->getSerial()) {
                     removeAction(action->getSerial(), action->getActionType());
@@ -31,7 +32,7 @@ namespace bd {
         }
 
         // If the action is to set the primary head, remove any other primary head actions
-        if (action->getActionType() == ConfigurationActionType::SetPrimary) {
+        if (action->getActionType() == ConfigurationActionType::Type::SetPrimary) {
             for (auto action : m_actions) {
                 if (action->getActionType() == ConfigurationActionType::SetPrimary) {
                     m_actions.removeOne(action);
@@ -43,7 +44,7 @@ namespace bd {
         m_actions.append(action);
     }
 
-    void ConfigurationBatchSystem::removeAction(QString serial, ConfigurationActionType action_type) {
+    void OutputBatchSystem::removeAction(QString serial, ConfigurationActionType::Type action_type) {
         for (auto action : m_actions) {
             if (action->getSerial() == serial && action->getActionType() == action_type) {
                 m_actions.removeOne(action);
@@ -52,11 +53,11 @@ namespace bd {
         }
     }
 
-    void ConfigurationBatchSystem::apply() {
+    void OutputBatchSystem::apply() {
         // Always recalculate before applying so the latest actions are reflected
         calculate();
 
-        auto &orchestrator = bd::WaylandOrchestrator::instance();
+        auto &orchestrator = bd::OutputManager::WaylandOrchestrator::instance();
         auto manager = orchestrator.getManager();
         
         if (manager.isNull()) {
@@ -82,11 +83,11 @@ namespace bd {
             auto serial = head->getIdentifier();
             
             if (!outputStates.contains(serial)) {
-                qWarning() << "ConfigurationBatchSystem error: Head" << serial 
-                          << "does not have a corresponding OutputTargetState. This indicates a bug in the calculation logic.";
+                qWarning() << "OutputBatchSystem error: Head" << serial 
+                          << "does not have a corresponding TargetState. This indicates a bug in the calculation logic.";
                 return;
             } else {
-                qDebug() << "ConfigurationBatchSystem: Head" << serial << "has a corresponding OutputTargetState";
+                qDebug() << "OutputBatchSystem: Head" << serial << "has a corresponding TargetState";
             }
         }
 
@@ -168,7 +169,7 @@ namespace bd {
         }
 
         // Connect to configuration result signals
-        connect(config.data(), &WaylandOutputConfiguration::succeeded, this, [this, config]() {
+        connect(config.data(), &bd::OutputManager::WaylandOutputConfiguration::succeeded, this, [this, config]() {
             qDebug() << "Configuration applied successfully";
             
             // Update and save the configuration
@@ -178,7 +179,7 @@ namespace bd {
             auto activeGroup = displayConfig.getActiveGroup();
             if (activeGroup) {
                 // After success, update primary in meta heads based on group's primary
-                auto &orchestrator = bd::WaylandOrchestrator::instance();
+                auto &orchestrator = bd::OutputManager::WaylandOrchestrator::instance();
                 auto manager = orchestrator.getManager();
                 auto heads = manager->getHeads();
                 auto primary = activeGroup->getPrimaryOutput();
@@ -198,13 +199,13 @@ namespace bd {
             config->release();
         });
         
-        connect(config.data(), &WaylandOutputConfiguration::failed, this, [this, config]() {
+        connect(config.data(), &bd::OutputManager::WaylandOutputConfiguration::failed, this, [this, config]() {
             qWarning() << "Configuration application failed";
             emit configurationApplied(false);
             config->release();
         });
         
-        connect(config.data(), &WaylandOutputConfiguration::cancelled, this, [this, config]() {
+        connect(config.data(), &bd::OutputManager::WaylandOutputConfiguration::cancelled, this, [this, config]() {
             qWarning() << "Configuration application was cancelled";
             emit configurationApplied(false);
             config->release();
@@ -215,24 +216,24 @@ namespace bd {
         config->applySelf();
     }
 
-    void ConfigurationBatchSystem::calculate() {
-        m_calculation_result = QSharedPointer<CalculationResult>(new CalculationResult(this));
+    void OutputBatchSystem::calculate() {
+        m_calculation_result = QSharedPointer<Result>(new Result(this));
 
         // Create our output target states for each serial first
-        auto &orchestrator = bd::WaylandOrchestrator::instance();
+        auto &orchestrator = bd::OutputManager::WaylandOrchestrator::instance();
         auto manager = orchestrator.getManager();
 
-        auto pendingOutputStates = QMap<QString, QSharedPointer<OutputTargetState>>();
+        auto pendingOutputStates = QMap<QString, QSharedPointer<TargetState>>();
 
         for (auto const& headPtr : manager->getHeads()) {
             // Skip null heads
             if (headPtr.isNull()) continue;
             auto head = headPtr.data();
 
-            auto outputState = new OutputTargetState(head->getIdentifier());
+            auto outputState = new TargetState(head->getIdentifier());
             outputState->setDefaultValues(headPtr); // Set some default values for the head
             
-            auto outputStatePtr = QSharedPointer<OutputTargetState>(outputState);
+            auto outputStatePtr = QSharedPointer<TargetState>(outputState);
             pendingOutputStates.insert(head->getIdentifier(), outputStatePtr);
         }
 
@@ -405,7 +406,7 @@ namespace bd {
         }
     }
 
-    QPoint ConfigurationBatchSystem::calculateAnchoredPosition(QSharedPointer<OutputTargetState> outputState, QSharedPointer<OutputTargetState> relativeState) {
+    QPoint OutputBatchSystem::calculateAnchoredPosition(QSharedPointer<TargetState> outputState, QSharedPointer<TargetState> relativeState) {
         if (outputState.isNull() || relativeState.isNull()) return QPoint(0, 0);
         
         auto relativePos = relativeState->getPosition();
@@ -416,15 +417,15 @@ namespace bd {
         
         // Calculate horizontal position
         switch (outputState->getHorizontalAnchor()) {
-            case ConfigurationHorizontalAnchor::Left:
-                // Left edge of output aligns with left edge of relative
+            case ConfigurationHorizontalAnchor::Type::Left:
+                // Right edge of output aligns with left edge of relative
                 newPosition.setX(relativePos.x());
                 break;
-            case ConfigurationHorizontalAnchor::Right:
-                // Right edge of output aligns with right edge of relative
+            case ConfigurationHorizontalAnchor::Type::Right:
+                // Left edge of output aligns with right edge of relative
                 newPosition.setX(relativePos.x() + relativeDimensions.width() - outputDimensions.width());
                 break;
-            case ConfigurationHorizontalAnchor::Center:
+            case ConfigurationHorizontalAnchor::Type::Center:
                 // Center of output aligns with center of relative
                 newPosition.setX(relativePos.x() + (relativeDimensions.width() - outputDimensions.width()) / 2);
                 break;
@@ -436,23 +437,23 @@ namespace bd {
         
         // Calculate vertical position
         switch (outputState->getVerticalAnchor()) {
-            case ConfigurationVerticalAnchor::Above:
+            case ConfigurationVerticalAnchor::Type::Above:
                 // Bottom edge of output is at top edge of relative
                 newPosition.setY(relativePos.y() - outputDimensions.height());
                 break;
-            case ConfigurationVerticalAnchor::Top:
+            case ConfigurationVerticalAnchor::Type::Top:
                 // Top edge of output aligns with top edge of relative
                 newPosition.setY(relativePos.y());
                 break;
-            case ConfigurationVerticalAnchor::Middle:
+            case ConfigurationVerticalAnchor::Type::Middle:
                 // Middle of output aligns with middle of relative
                 newPosition.setY(relativePos.y() + (relativeDimensions.height() - outputDimensions.height()) / 2);
                 break;
-            case ConfigurationVerticalAnchor::Bottom:
+            case ConfigurationVerticalAnchor::Type::Bottom:
                 // Bottom edge of output aligns with bottom edge of relative
                 newPosition.setY(relativePos.y() + relativeDimensions.height() - outputDimensions.height());
                 break;
-            case ConfigurationVerticalAnchor::Below:
+            case ConfigurationVerticalAnchor::Type::Below:
                 // Top edge of output is at bottom edge of relative
                 newPosition.setY(relativePos.y() + relativeDimensions.height());
                 break;
@@ -465,83 +466,83 @@ namespace bd {
         return newPosition;
     }
 
-    void ConfigurationBatchSystem::reset() {
+    void OutputBatchSystem::reset() {
         m_calculation_result.clear(); // Clear the calculation result
         m_actions.clear(); // Clear the actions
     }
     
-    QList<QSharedPointer<ConfigurationAction>> ConfigurationBatchSystem::getActions() const {
+    QList<QSharedPointer<ConfigurationAction>> OutputBatchSystem::getActions() const {
         return m_actions;
     }
 
-    QSharedPointer<CalculationResult> ConfigurationBatchSystem::getCalculationResult() const {
+    QSharedPointer<Result> OutputBatchSystem::getCalculationResult() const {
         return m_calculation_result;
     }
-}
 
-QList<QString> bd::ConfigurationBatchSystem::buildHorizontalChain(const QMap<QString, QSharedPointer<OutputTargetState>>& pendingOutputStates, const QList<QSharedPointer<ConfigurationAction>>& actions) const {
-    // Map: serial -> relative_serial (for Right anchors only, not Above/Below)
-    QMap<QString, QString> rightOfMap;
-    // Reverse map: relative_serial -> serial
-    QMap<QString, QString> referencedByMap;
-    QSet<QString> allSerials;
-    QSet<QString> allRelatives;
+    QList<QString> OutputBatchSystem::buildHorizontalChain(const QMap<QString, QSharedPointer<TargetState>>& pendingOutputStates, const QList<QSharedPointer<ConfigurationAction>>& actions) {
+        // Map: serial -> relative_serial (for Right anchors only, not Above/Below)
+        QMap<QString, QString> rightOfMap;
+        // Reverse map: relative_serial -> serial
+        QMap<QString, QString> referencedByMap;
+        QSet<QString> allSerials;
+        QSet<QString> allRelatives;
 
-    for (const auto& action : actions) {
-        if (action->getActionType() == ConfigurationActionType::SetPositionAnchor &&
-            action->getHorizontalAnchor() == ConfigurationHorizontalAnchor::Right &&
-            action->getVerticalAnchor() != ConfigurationVerticalAnchor::Above &&
-            action->getVerticalAnchor() != ConfigurationVerticalAnchor::Below) {
-            rightOfMap.insert(action->getSerial(), action->getRelative());
-            referencedByMap.insert(action->getRelative(), action->getSerial());
-            allSerials.insert(action->getSerial());
-            allRelatives.insert(action->getRelative());
+        for (const auto& action : actions) {
+            if (action->getActionType() == ConfigurationActionType::SetPositionAnchor &&
+                action->getHorizontalAnchor() == ConfigurationHorizontalAnchor::Right &&
+                action->getVerticalAnchor() != ConfigurationVerticalAnchor::Above &&
+                action->getVerticalAnchor() != ConfigurationVerticalAnchor::Below) {
+                rightOfMap.insert(action->getSerial(), action->getRelative());
+                referencedByMap.insert(action->getRelative(), action->getSerial());
+                allSerials.insert(action->getSerial());
+                allRelatives.insert(action->getRelative());
+            }
         }
-    }
-    // All outputs
-    for (const auto& serial : pendingOutputStates.keys()) {
-        allSerials.insert(serial);
-    }
-
-    // Find the leftmost output: one that is referenced as a relative, but is not a serial in rightOfMap
-    // (i.e., appears as a relative, but not as a serial)
-    QString leftmost;
-    for (const auto& rel : allRelatives) {
-        if (!rightOfMap.contains(rel)) {
-            leftmost = rel;
-            break;
-        }
-    }
-    // If not found, fallback: pick any output not a serial in rightOfMap
-    if (leftmost.isEmpty()) {
+        // All outputs
         for (const auto& serial : pendingOutputStates.keys()) {
-            if (!rightOfMap.contains(serial)) {
-                leftmost = serial;
+            allSerials.insert(serial);
+        }
+
+        // Find the leftmost output: one that is referenced as a relative, but is not a serial in rightOfMap
+        // (i.e., appears as a relative, but not as a serial)
+        QString leftmost;
+        for (const auto& rel : allRelatives) {
+            if (!rightOfMap.contains(rel)) {
+                leftmost = rel;
                 break;
             }
         }
-    }
-
-    QList<QString> chain;
-    QSet<QString> visited;
-    // Walk the chain from leftmost to rightmost
-    QString current = leftmost;
-    while (!current.isEmpty() && !visited.contains(current)) {
-        chain.append(current);
-        visited.insert(current);
-        // Find who is right of current
-        if (referencedByMap.contains(current)) {
-            current = referencedByMap[current];
-        } else {
-            break;
+        // If not found, fallback: pick any output not a serial in rightOfMap
+        if (leftmost.isEmpty()) {
+            for (const auto& serial : pendingOutputStates.keys()) {
+                if (!rightOfMap.contains(serial)) {
+                    leftmost = serial;
+                    break;
+                }
+            }
         }
-    }
 
-    // Append unanchored outputs (not in chain)
-    for (const auto& serial : pendingOutputStates.keys()) {
-        if (!visited.contains(serial)) {
-            chain.append(serial);
+        QList<QString> chain;
+        QSet<QString> visited;
+        // Walk the chain from leftmost to rightmost
+        QString current = leftmost;
+        while (!current.isEmpty() && !visited.contains(current)) {
+            chain.append(current);
+            visited.insert(current);
+            // Find who is right of current
+            if (referencedByMap.contains(current)) {
+                current = referencedByMap[current];
+            } else {
+                break;
+            }
         }
+
+        // Append unanchored outputs (not in chain)
+        for (const auto& serial : pendingOutputStates.keys()) {
+            if (!visited.contains(serial)) {
+                chain.append(serial);
+            }
+        }
+        return chain;
     }
-    return chain;
 }
