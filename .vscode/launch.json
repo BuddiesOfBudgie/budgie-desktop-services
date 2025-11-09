@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "BudgieDaemonV2",
-            "program": "${workspaceFolder}/build/bin/org.buddiesofbudgie.BudgieDaemonV2",
+            "program": "${workspaceFolder}/build/bin/org.buddiesofbudgie.Services",
             "args": [],
             "cwd": "${workspaceFolder}",
             "env": {

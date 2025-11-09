@@ -13,7 +13,7 @@ ecm_add_qtwayland_client_protocol(
   wlr-output-management-unstable-v1)
 
 add_library(
-  budgie-daemon-v2 STATIC
+  budgie-desktop-services STATIC
   config/display.cpp
   config/display.hpp
   config/format.hpp
@@ -65,39 +65,40 @@ add_library(
   sys/SysInfo.hpp
 )
 
-add_executable(budgie-daemon-v2-app main.cpp)
+add_executable(budgie-desktop-services-app main.cpp)
 target_include_directories(
-  budgie-daemon-v2-app PRIVATE ${CMAKE_BINARY_DIR}
+  budgie-desktop-services-app PRIVATE ${CMAKE_BINARY_DIR}
                                ${CMAKE_CURRENT_SOURCE_DIR}/includes)
-target_link_libraries(budgie-daemon-v2-app PRIVATE budgie-daemon-v2)
+target_link_libraries(budgie-desktop-services-app PRIVATE budgie-desktop-services)
 
 target_include_directories(
-  budgie-daemon-v2
+  budgie-desktop-services
   PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/includes
           ${CMAKE_CURRENT_SOURCE_DIR}/config ${CMAKE_CURRENT_SOURCE_DIR}/dbus
           ${CMAKE_CURRENT_SOURCE_DIR}/displays ${CMAKE_CURRENT_SOURCE_DIR}/sys)
 
 target_link_libraries(
-  budgie-daemon-v2 PUBLIC Qt::Core Qt::DBus Qt::WaylandClient toml11::toml11 Wayland::Client
+  budgie-desktop-services PUBLIC Qt::Core Qt::DBus Qt::WaylandClient toml11::toml11 Wayland::Client
                           WaylandProtocols_xml)
 
 set_target_properties(
-  budgie-daemon-v2-app PROPERTIES OUTPUT_NAME
-                                  "org.buddiesofbudgie.BudgieDaemonV2")
+  budgie-desktop-services-app PROPERTIES OUTPUT_NAME
+                                  "org.buddiesofbudgie.Services")
 
-install(TARGETS budgie-daemon-v2-app ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS budgie-desktop-services-app ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 install(FILES dbus/org.buddiesofbudgie.BudgieDaemon.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/system.d)
 
 if(INSTALL_SERVICE_FILES)
-    if(INSTALL_LABWC)
-        install(FILES data/labwc/autostart DESTINATION /etc/xdg/labwc)
-    else()
-        ecm_install_configured_files(
-      INPUT data/org.buddiesofbudgie.BudgieDaemonV2.desktop.in DESTINATION
-      ${KDE_INSTALL_AUTOSTARTDIR})
-        ecm_install_configured_files(
-      INPUT data/org.buddiesofbudgie.BudgieDaemonV2.service.in DESTINATION
-      ${KDE_INSTALL_SYSTEMDUSERUNITDIR})
-    endif()
+  ecm_install_configured_files(
+    INPUT data/org.buddiesofbudgie.Services.desktop.in DESTINATION
+    ${KDE_INSTALL_AUTOSTARTDIR}
+  )
+  if(INSTALL_LABWC)
+      install(FILES data/labwc/autostart DESTINATION /etc/xdg/labwc)
+  else()
+      ecm_install_configured_files(
+    INPUT data/org.buddiesofbudgie.Services.service.in DESTINATION
+    ${KDE_INSTALL_SYSTEMDUSERUNITDIR})
+  endif()
 endif()

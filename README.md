@@ -1,6 +1,6 @@
-# Budgie Daemon v2
+# Budgie Desktop Services
 
-Budgie Daemon v2 is the future central hub and orchestrator for Budgie Desktop (with a focus on Budgie 11). Today, it primarily provides Wayland-native display configuration for Budgie 10.10; over time it will coordinate broader desktop logic for Budgie 11.
+Budgie Desktop Services is the future central hub and orchestrator for Budgie Desktop (with a focus on Budgie 11). Today, it primarily provides Wayland-native display configuration for Budgie 10.10; over time it will coordinate broader desktop logic for Budgie 11.
 
 ### Highlights
 
@@ -105,17 +105,17 @@ sudo task install
 
 ### Run
 
-- After install, the binary is `org.buddiesofbudgie.BudgieDaemonV2` and is autostarted for the user session
+- After install, the binary is `org.buddiesofbudgie.Services` and is autostarted for the user session
 - For ad-hoc runs from the build tree:
 
 ```bash
-./build/bin/org.buddiesofbudgie.BudgieDaemonV2
+./build/bin/org.buddiesofbudgie.Services
 ```
 
 Wayland debugging (example from Taskfile):
 
 ```bash
-wldbg -r ./build/src/org.buddiesofbudgie.BudgieDaemonV2 -g
+wldbg -r ./build/src/org.buddiesofbudgie.Services -g
 ```
 
 ### Development notes

@@ -6,7 +6,7 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
 
 ### Project quick facts
 
-- Core purpose: Budgie Daemon v2 is the future central hub and orchestrator for Budgie Desktop (with a focus on Budgie 11). Today, it primarily provides Wayland-native display configuration for Budgie 10.10; over time it will coordinate broader desktop logic for Budgie 11.
+- Core purpose: Budgie Desktop Services is the future central hub and orchestrator for Budgie Desktop (with a focus on Budgie 11). Today, it primarily provides Wayland-native display configuration for Budgie 10.10; over time it will coordinate broader desktop logic for Budgie 11.
 - Wayland protocol: `wlr-output-management-unstable-v1`.
 - DBus API: XML schemas in `src/dbus/schemas/` → generated adaptors in `src/dbus/generated/`.
 - Output model: meta heads/modes exposed via services under `org.buddiesofbudgie.BudgieDaemon`.
@@ -50,7 +50,7 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
 
 5) Build and test:
    - `task cook`
-   - Optionally run from build tree: `./build/bin/org.buddiesofbudgie.BudgieDaemonV2`
+   - Optionally run from build tree: `./build/bin/org.buddiesofbudgie.Services`
 
 ### Example: Adding primary-output helpers (pattern)
 

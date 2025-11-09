@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.20)
 
-project(budgie-daemon-v2 VERSION 0.0.1)
+project(budgie-desktop-services VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -29,6 +29,7 @@ include(KDECMakeSettings)
 # include(KDECompilerSettings NO_POLICY_SCOPE)
 include(GenerateExportHeader)
 include(ECMGenerateHeaders)
+include(ECMConfiguredInstall)
 
 find_package(Qt6 ${QT_MIN_VERSION} NO_MODULE COMPONENTS Core DBus WaylandClient)
 

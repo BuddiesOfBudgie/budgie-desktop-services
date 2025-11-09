@@ -45,4 +45,4 @@ tasks:
     env:
       QT_LOGGING_RULES: "*.debug=true"
     cmds:
-      - wldbg -r ./build/bin/org.buddiesofbudgie.BudgieDaemonV2 -g
+      - wldbg -r ./build/bin/org.buddiesofbudgie.Services -g

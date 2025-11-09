@@ -1,10 +1,10 @@
 [Unit]
-Description=Budgie Daemon v2
+Description=Budgie Desktop Services
 PartOf=graphical-session.target
 ConditionEnvironment=WAYLAND_DISPLAY
 
 [Service]
-ExecStart=org.buddiesofbudgie.BudgieDaemonV2
+ExecStart=org.buddiesofbudgie.Services
 BusName=org.buddiesofbudgie.BudgieDaemon
 Restart=on-failure
 Slice=session.slice
