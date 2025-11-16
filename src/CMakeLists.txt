@@ -89,16 +89,20 @@ install(TARGETS budgie-desktop-services-app ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
 install(FILES dbus/org.buddiesofbudgie.BudgieDaemon.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/system.d)
 
-if(INSTALL_SERVICE_FILES)
+
+if(INSTALL_DESKTOP_FILE)
   ecm_install_configured_files(
     INPUT data/org.buddiesofbudgie.Services.desktop.in DESTINATION
     ${KDE_INSTALL_AUTOSTARTDIR}
   )
-  if(INSTALL_LABWC)
-      install(FILES data/labwc/autostart DESTINATION /etc/xdg/labwc)
-  else()
-      ecm_install_configured_files(
+endif()
+
+if(INSTALL_LABWC)
+  install(FILES data/labwc/autostart DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
+endif()
+
+if(INSTALL_SERVICE_FILES)
+  ecm_install_configured_files(
     INPUT data/org.buddiesofbudgie.Services.service.in DESTINATION
     ${KDE_INSTALL_SYSTEMDUSERUNITDIR})
-  endif()
 endif()
