@@ -44,7 +44,7 @@ find_package(KWayland REQUIRED)
 find_package(toml11 REQUIRED)
 
 option(INSTALL_DESKTOP_FILE "Install desktop file" OFF)
-option(INSTALL_SERVICE_FILES "Install service files for autostarting" ON)
+option(INSTALL_SERVICE_FILES "Install service files for autostarting" OFF)
 option(INSTALL_LABWC "Install autostart files for labwc" ON)
 
 add_subdirectory(src)
