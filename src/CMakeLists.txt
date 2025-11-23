@@ -98,7 +98,7 @@ if(INSTALL_DESKTOP_FILE)
 endif()
 
 if(INSTALL_LABWC)
-  install(FILES data/labwc/autostart DESTINATION ${KDE_INSTALL_AUTOSTARTDIR})
+  install(FILES data/labwc/autostart DESTINATION ${KDE_INSTALL_SYSCONFDIR}/labwc)
 endif()
 
 if(INSTALL_SERVICE_FILES)
