@@ -12,6 +12,92 @@ ecm_add_qtwayland_client_protocol(
   protocols/wlr-output-management-unstable-v1.xml BASENAME
   wlr-output-management-unstable-v1)
 
+# ============================================================================
+# D-Bus Code Generation
+# ============================================================================
+# Automatically generate D-Bus adaptor code from XML schemas during build
+# This replaces the manual 'task qdbus-gen' workflow
+
+find_package(Qt6 COMPONENTS DBus REQUIRED)
+
+# Find qdbusxml2cpp tool
+if(TARGET Qt6::qdbusxml2cpp)
+    get_target_property(QT_QDBUSXML2CPP_EXECUTABLE Qt6::qdbusxml2cpp LOCATION)
+else()
+    find_program(QT_QDBUSXML2CPP_EXECUTABLE qdbusxml2cpp HINTS ${Qt6_BINDIR} REQUIRED)
+endif()
+
+message(STATUS "Found qdbusxml2cpp: ${QT_QDBUSXML2CPP_EXECUTABLE}")
+
+set(DBUS_SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dbus/schemas)
+
+# Use custom commands to generate D-Bus adaptors with qdbusxml2cpp
+# This gives us full control over the command-line arguments
+set(DBUS_GENERATED_SOURCES)
+
+# Define the generated files
+set(DBUS_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/dbus/generated)
+file(MAKE_DIRECTORY ${DBUS_GEN_DIR})
+
+# BatchSystem adaptor
+set(BATCH_ADAPTOR_H ${DBUS_GEN_DIR}/BatchSystemAdaptorGen.h)
+set(BATCH_ADAPTOR_CPP ${DBUS_GEN_DIR}/BatchSystemAdaptorGen.cpp)
+add_custom_command(
+    OUTPUT ${BATCH_ADAPTOR_H} ${BATCH_ADAPTOR_CPP}
+    COMMAND ${QT_QDBUSXML2CPP_EXECUTABLE} -m -a ${DBUS_GEN_DIR}/BatchSystemAdaptorGen -c BatchSystemAdaptor ${DBUS_SCHEMA_DIR}/DisplaySchema.BatchSystem.xml
+    DEPENDS ${DBUS_SCHEMA_DIR}/DisplaySchema.BatchSystem.xml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating BatchSystemAdaptor from DisplaySchema.BatchSystem.xml"
+)
+list(APPEND DBUS_GENERATED_SOURCES ${BATCH_ADAPTOR_H} ${BATCH_ADAPTOR_CPP})
+
+# Display adaptor (note: class name is DisplaysAdaptor with 's')
+set(DISPLAY_ADAPTOR_H ${DBUS_GEN_DIR}/DisplayAdaptorGen.h)
+set(DISPLAY_ADAPTOR_CPP ${DBUS_GEN_DIR}/DisplayAdaptorGen.cpp)
+add_custom_command(
+    OUTPUT ${DISPLAY_ADAPTOR_H} ${DISPLAY_ADAPTOR_CPP}
+    COMMAND ${QT_QDBUSXML2CPP_EXECUTABLE} -m -a ${DBUS_GEN_DIR}/DisplayAdaptorGen -c DisplaysAdaptor ${DBUS_SCHEMA_DIR}/DisplaySchema.Displays.xml
+    DEPENDS ${DBUS_SCHEMA_DIR}/DisplaySchema.Displays.xml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating DisplaysAdaptor from DisplaySchema.Displays.xml"
+)
+list(APPEND DBUS_GENERATED_SOURCES ${DISPLAY_ADAPTOR_H} ${DISPLAY_ADAPTOR_CPP})
+
+# Output adaptor
+set(OUTPUT_ADAPTOR_H ${DBUS_GEN_DIR}/OutputAdaptorGen.h)
+set(OUTPUT_ADAPTOR_CPP ${DBUS_GEN_DIR}/OutputAdaptorGen.cpp)
+add_custom_command(
+    OUTPUT ${OUTPUT_ADAPTOR_H} ${OUTPUT_ADAPTOR_CPP}
+    COMMAND ${QT_QDBUSXML2CPP_EXECUTABLE} -m -a ${DBUS_GEN_DIR}/OutputAdaptorGen -c OutputAdaptor ${DBUS_SCHEMA_DIR}/DisplaySchema.Output.xml
+    DEPENDS ${DBUS_SCHEMA_DIR}/DisplaySchema.Output.xml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating OutputAdaptor from DisplaySchema.Output.xml"
+)
+list(APPEND DBUS_GENERATED_SOURCES ${OUTPUT_ADAPTOR_H} ${OUTPUT_ADAPTOR_CPP})
+
+# OutputMode adaptor
+set(OUTPUTMODE_ADAPTOR_H ${DBUS_GEN_DIR}/OutputModeAdaptorGen.h)
+set(OUTPUTMODE_ADAPTOR_CPP ${DBUS_GEN_DIR}/OutputModeAdaptorGen.cpp)
+add_custom_command(
+    OUTPUT ${OUTPUTMODE_ADAPTOR_H} ${OUTPUTMODE_ADAPTOR_CPP}
+    COMMAND ${QT_QDBUSXML2CPP_EXECUTABLE} -m -a ${DBUS_GEN_DIR}/OutputModeAdaptorGen -c OutputModeAdaptor ${DBUS_SCHEMA_DIR}/DisplaySchema.OutputMode.xml
+    DEPENDS ${DBUS_SCHEMA_DIR}/DisplaySchema.OutputMode.xml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating OutputModeAdaptor from DisplaySchema.OutputMode.xml"
+)
+list(APPEND DBUS_GENERATED_SOURCES ${OUTPUTMODE_ADAPTOR_H} ${OUTPUTMODE_ADAPTOR_CPP})
+
+message(STATUS "Generating D-Bus adaptors:")
+message(STATUS "  - dbus/generated/BatchSystemAdaptorGen from DisplaySchema.BatchSystem.xml")
+message(STATUS "  - dbus/generated/DisplayAdaptorGen from DisplaySchema.Displays.xml")
+message(STATUS "  - dbus/generated/OutputAdaptorGen from DisplaySchema.Output.xml")
+message(STATUS "  - dbus/generated/OutputModeAdaptorGen from DisplaySchema.OutputMode.xml")
+message(STATUS "Generated files will be in: ${CMAKE_CURRENT_BINARY_DIR}/dbus/generated")
+
+# ============================================================================
+# Main Library Build
+# ============================================================================
+
 add_library(
   budgie-desktop-services STATIC
   config/display.cpp
@@ -19,14 +105,6 @@ add_library(
   config/format.hpp
   config/utils.cpp
   config/utils.hpp
-  dbus/generated/BatchSystemAdaptorGen.cpp
-  dbus/generated/BatchSystemAdaptorGen.h
-  dbus/generated/DisplayAdaptorGen.cpp
-  dbus/generated/DisplayAdaptorGen.h
-  dbus/generated/OutputAdaptorGen.cpp
-  dbus/generated/OutputAdaptorGen.h
-  dbus/generated/OutputModeAdaptorGen.cpp
-  dbus/generated/OutputModeAdaptorGen.h
   dbus/DisplaySchemaTypes.hpp
   dbus/BatchSystemService.cpp
   dbus/BatchSystemService.hpp
@@ -38,6 +116,7 @@ add_library(
   dbus/OutputModeService.hpp
   dbus/OutputService.cpp
   dbus/OutputService.hpp
+  ${DBUS_GENERATED_SOURCES}
   displays/batch-system/CalculationResult.cpp
   displays/batch-system/CalculationResult.hpp
   displays/batch-system/ConfigurationAction.cpp
@@ -68,14 +147,18 @@ add_library(
 add_executable(budgie-desktop-services-app main.cpp)
 target_include_directories(
   budgie-desktop-services-app PRIVATE ${CMAKE_BINARY_DIR}
-                               ${CMAKE_CURRENT_SOURCE_DIR}/includes)
+                               ${CMAKE_CURRENT_SOURCE_DIR}/includes
+                               ${CMAKE_CURRENT_BINARY_DIR}
+                               ${CMAKE_CURRENT_BINARY_DIR}/dbus)
 target_link_libraries(budgie-desktop-services-app PRIVATE budgie-desktop-services)
 
 target_include_directories(
   budgie-desktop-services
   PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/includes
           ${CMAKE_CURRENT_SOURCE_DIR}/config ${CMAKE_CURRENT_SOURCE_DIR}/dbus
-          ${CMAKE_CURRENT_SOURCE_DIR}/displays ${CMAKE_CURRENT_SOURCE_DIR}/sys)
+          ${CMAKE_CURRENT_SOURCE_DIR}/displays ${CMAKE_CURRENT_SOURCE_DIR}/sys
+          ${CMAKE_CURRENT_BINARY_DIR}
+          ${CMAKE_CURRENT_BINARY_DIR}/dbus)
 
 target_link_libraries(
   budgie-desktop-services PUBLIC Qt::Core Qt::DBus Qt::WaylandClient toml11::toml11 Wayland::Client
