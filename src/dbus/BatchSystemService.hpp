@@ -1,20 +1,19 @@
 #pragma once
-#include <QObject>
 
-#include "generated/BatchSystemAdaptorGen.h"
+#include <QDBusContext>
+#include <QObject>
 
 #define BATCH_SYSTEM_SERVICE_PATH "/org/buddiesofbudgie/BudgieDaemon/Displays/BatchSystem"
 
 namespace bd {
-  class BatchSystemService : public QObject {
+  class BatchSystemService : public QObject, protected QDBusContext {
       Q_OBJECT
+
     public:
       explicit BatchSystemService(QObject* parent = nullptr);
-      static BatchSystemService& instance();
-      static BatchSystemService* create() { return &instance(); }
-      BatchSystemAdaptor*        GetAdaptor();
+      ~BatchSystemService() = default;
 
-    public slots:
+    public Q_SLOTS:
       void         ResetConfiguration();
       void         SetOutputEnabled(const QString& serial, bool enabled);
       void         SetOutputMode(const QString& serial, int width, int height, qulonglong refreshRate);
@@ -30,8 +29,5 @@ namespace bd {
 
     signals:
       void ConfigurationApplied(bool success);
-
-    private:
-      BatchSystemAdaptor* m_adaptor;
   };
 }

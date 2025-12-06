@@ -6,7 +6,6 @@
 namespace bd {
   OutputService::OutputService(QSharedPointer<WaylandOutputMetaHead> output, QObject* parent) : QObject(parent), m_output(output) {
     QString objectPath = QString("/org/buddiesofbudgie/BudgieDaemon/Displays/Outputs/%1").arg(output->getIdentifier());
-    m_adaptor          = new OutputAdaptor(this);
     QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAdaptors);
   }
 

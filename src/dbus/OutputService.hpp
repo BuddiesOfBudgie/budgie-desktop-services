@@ -1,12 +1,14 @@
 #pragma once
+
+#include <QDBusContext>
+#include <QObject>
 #include <QSharedPointer>
 
 #include "DisplaySchemaTypes.hpp"
 #include "displays/output-manager/head/WaylandOutputMetaHead.hpp"
-#include "generated/OutputAdaptorGen.h"
 
 namespace bd {
-  class OutputService : public QObject {
+  class OutputService : public QObject, QDBusContext {
       Q_OBJECT
       Q_PROPERTY(QString Serial READ Serial)
       Q_PROPERTY(QString Name READ Name)
@@ -58,6 +60,5 @@ namespace bd {
 
     private:
       QSharedPointer<WaylandOutputMetaHead> m_output;
-      OutputAdaptor*                        m_adaptor;
   };
 }

@@ -1,11 +1,13 @@
 #pragma once
+
+#include <QDBusContext>
+#include <QObject>
 #include <QSharedPointer>
 
 #include "displays/output-manager/mode/WaylandOutputMetaMode.hpp"
-#include "generated/OutputModeAdaptorGen.h"
 
 namespace bd {
-  class OutputModeService : public QObject {
+  class OutputModeService : public QObject, protected QDBusContext {
       Q_OBJECT
       Q_PROPERTY(int Width READ Width)
       Q_PROPERTY(int Height READ Height)
@@ -28,7 +30,6 @@ namespace bd {
 
     private:
       QSharedPointer<WaylandOutputMetaMode> m_mode;
-      OutputModeAdaptor*                    m_adaptor;
       QString                               m_outputId;
       bool                                  isCurrentMode() const;
   };

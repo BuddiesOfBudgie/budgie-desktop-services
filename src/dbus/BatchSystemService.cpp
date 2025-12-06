@@ -9,17 +9,11 @@
 
 namespace bd {
   BatchSystemService::BatchSystemService(QObject* parent) : QObject(parent) {
-    m_adaptor = new BatchSystemAdaptor(this);
+    if (!QDBusConnection::sessionBus().registerObject(BATCH_SYSTEM_SERVICE_PATH, this, QDBusConnection::ExportAllContents)) {
+      qCritical() << "Failed to register DBus object at path" << BATCH_SYSTEM_SERVICE_PATH;
+    }
+
     connect(&ConfigurationBatchSystem::instance(), &ConfigurationBatchSystem::configurationApplied, this, &BatchSystemService::ConfigurationApplied);
-  }
-
-  BatchSystemService& BatchSystemService::instance() {
-    static BatchSystemService _instance(nullptr);
-    return _instance;
-  }
-
-  BatchSystemAdaptor* BatchSystemService::GetAdaptor() {
-    return m_adaptor;
   }
 
   void BatchSystemService::ResetConfiguration() {

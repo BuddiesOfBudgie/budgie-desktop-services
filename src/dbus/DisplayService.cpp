@@ -1,16 +1,15 @@
 #include "DisplayService.hpp"
 
+#include <QDBusConnection>
+
 #include "displays/batch-system/ConfigurationBatchSystem.hpp"
 #include "displays/output-manager/WaylandOutputManager.hpp"
 
 namespace bd {
   DisplayService::DisplayService(QObject* parent) : QObject(parent) {
-    m_adaptor = new DisplaysAdaptor(this);
-  }
-
-  DisplayService& DisplayService::instance() {
-    static DisplayService _instance(nullptr);
-    return _instance;
+    if (!QDBusConnection::sessionBus().registerObject(DISPLAY_SERVICE_PATH, this, QDBusConnection::ExportAllContents)) {
+      qCritical() << "Failed to register DBus object at path" << DISPLAY_SERVICE_PATH;
+    }
   }
 
   QStringList DisplayService::GetAvailableOutputs() {
@@ -76,9 +75,5 @@ namespace bd {
     rect["Width"]  = globalSpace->width();
     rect["Height"] = globalSpace->height();
     return rect;
-  }
-
-  DisplaysAdaptor* DisplayService::GetAdaptor() {
-    return m_adaptor;
   }
 }
