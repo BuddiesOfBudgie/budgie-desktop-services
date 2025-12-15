@@ -1,25 +1,22 @@
 #pragma once
-#include "generated/OutputsAdaptorGen.h"
+
+#include <QDBusContext>
+#include <QObject>
 
 #define OUTPUTS_SERVICE_PATH "/org/buddiesofbudgie/Services/Outputs"
 
 namespace bd {
-  class OutputsService : public QObject {
+  class OutputsService : public QObject, protected QDBusContext {
       Q_OBJECT
 
     public:
       explicit OutputsService(QObject* parent = nullptr);
-      static OutputsService& instance();
-      static OutputsService* create() { return &instance(); }
-      OutputsAdaptor*       GetAdaptor();
+      ~OutputsService() = default;
 
-    public slots:
+    public Q_SLOTS:
       QStringList GetAvailableOutputs();
       QVariantMap GetGlobalRect();
       QString     GetPrimaryOutput();
       QVariantMap GetPrimaryOutputRect();
-
-    private:
-      OutputsAdaptor* m_adaptor;
   };
 }

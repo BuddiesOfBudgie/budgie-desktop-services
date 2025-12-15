@@ -6,11 +6,8 @@
 namespace bd {
   OutputService::OutputService(QSharedPointer<Outputs::Wlr::MetaHead> output, QObject* parent) : QObject(parent), m_output(output) {
     QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1").arg(output->getIdentifier());
-    m_adaptor          = new OutputAdaptor(this);
     QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAdaptors);
   }
-
-  OutputService::~OutputService() {}
 
   uint OutputService::AdaptiveSync() const {
     return static_cast<uint>(m_output->getAdaptiveSync());

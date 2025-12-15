@@ -1,20 +1,19 @@
 #pragma once
-#include <QObject>
 
-#include "generated/ConfigAdaptorGen.h"
+#include <QDBusContext>
+#include <QObject>
 
 #define OUTPUT_CONFIG_SERVICE_PATH "/org/buddiesofbudgie/Services/Outputs/Config"
 
 namespace bd {
-  class ConfigService : public QObject {
+  class ConfigService : public QObject, protected QDBusContext {
       Q_OBJECT
+
     public:
       explicit ConfigService(QObject* parent = nullptr);
-      static ConfigService& instance();
-      static ConfigService* create() { return &instance(); }
-      ConfigAdaptor*        GetAdaptor();
+      ~ConfigService() = default;
 
-    public slots:
+    public Q_SLOTS:
       void        ResetConfiguration();
       void        SetOutputEnabled(const QString& serial, bool enabled);
       void        SetOutputMode(const QString& serial, int width, int height, qulonglong refreshRate);
@@ -28,10 +27,7 @@ namespace bd {
       bool        ApplyConfiguration();
       QVariantList GetActions();
 
-    signals:
+    Q_SIGNALS:
       void ConfigurationApplied(bool success);
-
-    private:
-      ConfigAdaptor* m_adaptor;
   };
 }

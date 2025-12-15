@@ -9,19 +9,11 @@
 
 namespace bd {
   ConfigService::ConfigService(QObject* parent) : QObject(parent) {
-    m_adaptor = new ConfigAdaptor(this);
-    connect(
-        &bd::Outputs::Config::Model::instance(), &bd::Outputs::Config::Model::configurationApplied, this,
-        &ConfigService::ConfigurationApplied);
-  }
+    if (!QDBusConnection::sessionBus().registerObject(OUTPUT_CONFIG_SERVICE_PATH, this, QDBusConnection::ExportAllContents)) {
+      qCritical() << "Failed to register DBus object at path" << OUTPUT_CONFIG_SERVICE_PATH;
+    }
 
-  ConfigService& ConfigService::instance() {
-    static ConfigService _instance(nullptr);
-    return _instance;
-  }
-
-  ConfigAdaptor* ConfigService::GetAdaptor() {
-    return m_adaptor;
+    connect(&bd::Outputs::Config::Model::instance(), &bd::Outputs::Config::Model::configurationApplied, this, &ConfigService::ConfigurationApplied);
   }
 
   void ConfigService::ResetConfiguration() {
@@ -38,11 +30,8 @@ namespace bd {
     bd::Outputs::Config::Model::instance().addAction(action);
   }
 
-  void ConfigService::SetOutputPositionAnchor(
-      const QString& serial,
-      const QString& relativeSerial,
-      const QString& horizontalAnchor,
-      const QString& verticalAnchor) {
+  void
+  ConfigService::SetOutputPositionAnchor(const QString& serial, const QString& relativeSerial, const QString& horizontalAnchor, const QString& verticalAnchor) {
     auto hAnchor = bd::Outputs::Config::HorizontalAnchor::fromString(horizontalAnchor);
     auto vAnchor = bd::Outputs::Config::VerticalAnchor::fromString(verticalAnchor);
     auto action  = bd::Outputs::Config::Action::setPositionAnchor(serial, relativeSerial, hAnchor, vAnchor);

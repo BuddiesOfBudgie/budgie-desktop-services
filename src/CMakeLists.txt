@@ -12,29 +12,17 @@ ecm_add_qtwayland_client_protocol(
   protocols/wlr-output-management-unstable-v1.xml BASENAME
   wlr-output-management-unstable-v1)
 
-add_library(
-  budgie-desktop-services STATIC
+set(budgie-desktop-services_SRCS
   # Config
   config/display.cpp
   config/display.hpp
   config/format.hpp
   config/utils.cpp
   config/utils.hpp
-  # DBus (Generated)
-  dbus/generated/ConfigAdaptorGen.cpp
-  dbus/generated/ConfigAdaptorGen.h
-  dbus/generated/OutputsAdaptorGen.cpp
-  dbus/generated/OutputsAdaptorGen.h
-  dbus/generated/OutputAdaptorGen.cpp
-  dbus/generated/OutputAdaptorGen.h
-  dbus/generated/OutputModeAdaptorGen.cpp
-  dbus/generated/OutputModeAdaptorGen.h
   # DBus Services
   dbus/DisplaySchemaTypes.hpp
   dbus/ConfigService.cpp
   dbus/ConfigService.hpp
-  dbus/DisplayObjectManager.cpp
-  dbus/DisplayObjectManager.hpp
   dbus/OutputsService.cpp
   dbus/OutputsService.hpp
   dbus/OutputModeService.cpp
@@ -76,10 +64,22 @@ add_library(
   sys/SysInfo.hpp
 )
 
+qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Config.xml dbus/ConfigService.hpp bd::ConfigService)
+qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Outputs.xml dbus/OutputsService.hpp bd::OutputsService)
+qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Output.xml dbus/OutputService.hpp bd::OutputService)
+qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.OutputMode.xml dbus/OutputModeService.hpp bd::OutputModeService)
+
+add_library(
+  budgie-desktop-services STATIC
+  ${budgie-desktop-services_SRCS}
+)
+
 add_executable(budgie-desktop-services-app main.cpp)
 target_include_directories(
   budgie-desktop-services-app PRIVATE ${CMAKE_BINARY_DIR}
-                               ${CMAKE_CURRENT_SOURCE_DIR}/includes)
+                               ${CMAKE_CURRENT_SOURCE_DIR}/includes
+                               ${CMAKE_CURRENT_BINARY_DIR}/dbus
+                               ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(budgie-desktop-services-app PRIVATE budgie-desktop-services)
 
 target_include_directories(

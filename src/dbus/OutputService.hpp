@@ -1,11 +1,13 @@
 #pragma once
+
+#include <QDBusContext>
+#include <QObject>
 #include <QSharedPointer>
 
-#include "generated/OutputAdaptorGen.h"
 #include "outputs/wlr/metahead.hpp"
 
 namespace bd {
-  class OutputService : public QObject {
+  class OutputService : public QObject, protected QDBusContext {
       Q_OBJECT
       Q_PROPERTY(QString Serial READ Serial)
       Q_PROPERTY(QString Name READ Name)
@@ -26,9 +28,10 @@ namespace bd {
       Q_PROPERTY(QString HorizontalAnchor READ HorizontalAnchor)
       Q_PROPERTY(QString VerticalAnchor READ VerticalAnchor)
       Q_PROPERTY(QString RelativeTo READ RelativeTo)
+
     public:
       OutputService(QSharedPointer<Outputs::Wlr::MetaHead> output, QObject* parent = nullptr);
-      ~OutputService();
+      ~OutputService() = default;
 
       // Property getters
       QString    Serial() const;
@@ -57,6 +60,5 @@ namespace bd {
 
     private:
       QSharedPointer<Outputs::Wlr::MetaHead> m_output;
-      OutputAdaptor*                         m_adaptor;
   };
 }

@@ -1,16 +1,15 @@
 #include "OutputsService.hpp"
 
+#include <QDBusConnection>
+
 #include "outputs/config/model.hpp"
 #include "outputs/state.hpp"
 
 namespace bd {
   OutputsService::OutputsService(QObject* parent) : QObject(parent) {
-    m_adaptor = new OutputsAdaptor(this);
-  }
-
-  OutputsService& OutputsService::instance() {
-    static OutputsService _instance(nullptr);
-    return _instance;
+    if (!QDBusConnection::sessionBus().registerObject(OUTPUTS_SERVICE_PATH, this, QDBusConnection::ExportAllContents)) {
+      qCritical() << "Failed to register DBus object at path" << OUTPUTS_SERVICE_PATH;
+    }
   }
 
   QStringList OutputsService::GetAvailableOutputs() {
@@ -76,9 +75,5 @@ namespace bd {
     rect["Width"]  = globalSpace->width();
     rect["Height"] = globalSpace->height();
     return rect;
-  }
-
-  OutputsAdaptor* OutputsService::GetAdaptor() {
-    return m_adaptor;
   }
 }

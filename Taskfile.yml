@@ -5,14 +5,6 @@ tasks:
     desc: "Run clang-format"
     cmds:
       - clang-format -i src/**/*.cpp src/**/*.hpp
-  qdbus-gen:
-    desc: "Generate qdbus adaptors"
-    dir: src/dbus
-    cmds:
-      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/OutputsAdaptorGen schemas/DisplaySchema.Outputs.xml
-      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/ConfigAdaptorGen schemas/DisplaySchema.Config.xml
-      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/OutputAdaptorGen schemas/DisplaySchema.Output.xml
-      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/OutputModeAdaptorGen schemas/DisplaySchema.OutputMode.xml
   setup:
     desc: "Run cmake configuration"
     cmds:
