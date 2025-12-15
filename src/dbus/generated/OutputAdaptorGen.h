@@ -18,14 +18,14 @@
 #include <QtCore/qcontainerfwd.h>
 
 /*
- * Adaptor class for interface org.buddiesofbudgie.BudgieDaemon.Output
+ * Adaptor class for interface org.buddiesofbudgie.Services.Output
  */
 class OutputAdaptor: public QDBusAbstractAdaptor
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.BudgieDaemon.Output")
+    Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.Output")
     Q_CLASSINFO("D-Bus Introspection", ""
-"  <interface name=\"org.buddiesofbudgie.BudgieDaemon.Output\">\n"
+"  <interface name=\"org.buddiesofbudgie.Services.Output\">\n"
 "    <property access=\"read\" type=\"s\" name=\"Serial\"/>\n"
 "    <property access=\"read\" type=\"s\" name=\"Name\"/>\n"
 "    <property access=\"read\" type=\"s\" name=\"Description\"/>\n"
@@ -42,8 +42,8 @@ class OutputAdaptor: public QDBusAbstractAdaptor
 "    <property access=\"read\" type=\"u\" name=\"AdaptiveSync\"/>\n"
 "    <property access=\"read\" type=\"b\" name=\"Primary\"/>\n"
 "    <property access=\"read\" type=\"s\" name=\"MirrorOf\"/>\n"
-"    <property access=\"read\" type=\"i\" name=\"HorizontalAnchor\"/>\n"
-"    <property access=\"read\" type=\"i\" name=\"VerticalAnchor\"/>\n"
+"    <property access=\"read\" type=\"s\" name=\"HorizontalAnchor\"/>\n"
+"    <property access=\"read\" type=\"s\" name=\"VerticalAnchor\"/>\n"
 "    <property access=\"read\" type=\"s\" name=\"RelativeTo\"/>\n"
 "    <method name=\"GetAvailableModes\">\n"
 "      <annotation value=\"QStringList\" name=\"org.qtproject.QtDBus.QtTypeName.Out0\"/>\n"
@@ -92,8 +92,8 @@ public: // PROPERTIES
     Q_PROPERTY(int Height READ height)
     int height() const;
 
-    Q_PROPERTY(int HorizontalAnchor READ horizontalAnchor)
-    int horizontalAnchor() const;
+    Q_PROPERTY(QString HorizontalAnchor READ horizontalAnchor)
+    QString horizontalAnchor() const;
 
     Q_PROPERTY(QString Make READ make)
     QString make() const;
@@ -125,8 +125,8 @@ public: // PROPERTIES
     Q_PROPERTY(uchar Transform READ transform)
     uchar transform() const;
 
-    Q_PROPERTY(int VerticalAnchor READ verticalAnchor)
-    int verticalAnchor() const;
+    Q_PROPERTY(QString VerticalAnchor READ verticalAnchor)
+    QString verticalAnchor() const;
 
     Q_PROPERTY(int Width READ width)
     int width() const;

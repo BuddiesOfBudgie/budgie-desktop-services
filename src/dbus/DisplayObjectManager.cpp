@@ -1,10 +1,8 @@
 #include "DisplayObjectManager.hpp"
 
-#include "BatchSystemService.hpp"
-#include "DisplayService.hpp"
-#include "displays/output-manager/WaylandOutputManager.hpp"
-#include "displays/output-manager/head/WaylandOutputMetaHead.hpp"
-#include "displays/output-manager/mode/WaylandOutputMetaMode.hpp"
+#include "ConfigService.hpp"
+#include "OutputsService.hpp"
+#include "outputs/state.hpp"
 
 namespace bd {
 
@@ -18,11 +16,11 @@ namespace bd {
   void DisplayObjectManager::onOutputManagerReady() {
     qInfo() << "Wayland Orchestrator ready";
     qInfo() << "Starting Display DBus Service now (outputs/modes)";
-    auto manager = WaylandOrchestrator::instance().getManager();
+    auto manager = Outputs::State::instance().getManager();
     if (!manager) return;
 
-    if (!QDBusConnection::sessionBus().registerService("org.buddiesofbudgie.BudgieDaemon")) {
-      qCritical() << "Failed to acquire DBus service name org.buddiesofbudgie.BudgieDaemon";
+    if (!QDBusConnection::sessionBus().registerService("org.buddiesofbudgie.Services")) {
+      qCritical() << "Failed to acquire DBus service name org.buddiesofbudgie.Services";
     }
 
     for (const auto& output : manager->getHeads()) {
@@ -40,13 +38,13 @@ namespace bd {
       }
     }
 
-    if (!QDBusConnection::sessionBus().registerObject(DISPLAY_SERVICE_PATH, DisplayService::instance().GetAdaptor(), QDBusConnection::ExportAllContents)) {
-      qCritical() << "Failed to register DBus object at path" << DISPLAY_SERVICE_PATH;
+    if (!QDBusConnection::sessionBus().registerObject(OUTPUTS_SERVICE_PATH, OutputsService::instance().GetAdaptor(), QDBusConnection::ExportAllContents)) {
+      qCritical() << "Failed to register DBus object at path" << OUTPUTS_SERVICE_PATH;
     }
 
     if (!QDBusConnection::sessionBus().registerObject(
-            BATCH_SYSTEM_SERVICE_PATH, BatchSystemService::instance().GetAdaptor(), QDBusConnection::ExportAllContents)) {
-      qCritical() << "Failed to register DBus object at path" << BATCH_SYSTEM_SERVICE_PATH;
+            OUTPUT_CONFIG_SERVICE_PATH, ConfigService::instance().GetAdaptor(), QDBusConnection::ExportAllContents)) {
+      qCritical() << "Failed to register DBus object at path" << OUTPUT_CONFIG_SERVICE_PATH;
     }
   }
 

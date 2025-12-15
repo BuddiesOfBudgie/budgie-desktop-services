@@ -9,14 +9,14 @@ tasks:
     desc: "Generate qdbus adaptors"
     dir: src/dbus
     cmds:
-      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/DisplayAdaptorGen schemas/DisplaySchema.Displays.xml
-      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/BatchSystemAdaptorGen schemas/DisplaySchema.BatchSystem.xml
+      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/OutputsAdaptorGen schemas/DisplaySchema.Outputs.xml
+      - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/ConfigAdaptorGen schemas/DisplaySchema.Config.xml
       - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/OutputAdaptorGen schemas/DisplaySchema.Output.xml
       - /usr/lib64/qt6/bin/qdbusxml2cpp -i ../DisplaySchemaTypes.hpp -a generated/OutputModeAdaptorGen schemas/DisplaySchema.OutputMode.xml
   setup:
     desc: "Run cmake configuration"
     cmds:
-      - cmake -S . -B build -G Ninja
+      - cmake -DCMAKE_INSTALL_PREFIX=/usr -S . -B build -G Ninja
   build:
     desc: "Run cmake build"
     cmds:

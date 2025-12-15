@@ -57,10 +57,10 @@ int OutputAdaptor::height() const
     return qvariant_cast< int >(parent()->property("Height"));
 }
 
-int OutputAdaptor::horizontalAnchor() const
+QString OutputAdaptor::horizontalAnchor() const
 {
     // get the value of property HorizontalAnchor
-    return qvariant_cast< int >(parent()->property("HorizontalAnchor"));
+    return qvariant_cast< QString >(parent()->property("HorizontalAnchor"));
 }
 
 QString OutputAdaptor::make() const
@@ -123,10 +123,10 @@ uchar OutputAdaptor::transform() const
     return qvariant_cast< uchar >(parent()->property("Transform"));
 }
 
-int OutputAdaptor::verticalAnchor() const
+QString OutputAdaptor::verticalAnchor() const
 {
     // get the value of property VerticalAnchor
-    return qvariant_cast< int >(parent()->property("VerticalAnchor"));
+    return qvariant_cast< QString >(parent()->property("VerticalAnchor"));
 }
 
 int OutputAdaptor::width() const
@@ -149,7 +149,7 @@ int OutputAdaptor::y() const
 
 QStringList OutputAdaptor::GetAvailableModes()
 {
-    // handle method call org.buddiesofbudgie.BudgieDaemon.Output.GetAvailableModes
+    // handle method call org.buddiesofbudgie.Services.Output.GetAvailableModes
     QStringList modePaths{};
     QMetaObject::invokeMethod(parent(), "GetAvailableModes", Q_RETURN_ARG(QStringList, modePaths));
     return modePaths;
@@ -157,7 +157,7 @@ QStringList OutputAdaptor::GetAvailableModes()
 
 QString OutputAdaptor::GetCurrentMode()
 {
-    // handle method call org.buddiesofbudgie.BudgieDaemon.Output.GetCurrentMode
+    // handle method call org.buddiesofbudgie.Services.Output.GetCurrentMode
     QString modePath{};
     QMetaObject::invokeMethod(parent(), "GetCurrentMode", Q_RETURN_ARG(QString, modePath));
     return modePath;

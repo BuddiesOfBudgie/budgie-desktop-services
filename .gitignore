@@ -1,5 +1,6 @@
 .cache
 .idea
+.qmlls.ini
 .zed
 cmake-build-debug
 build

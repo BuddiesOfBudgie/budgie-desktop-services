@@ -4,8 +4,8 @@
 #include <QString>
 
 namespace bd {
-  OutputService::OutputService(QSharedPointer<WaylandOutputMetaHead> output, QObject* parent) : QObject(parent), m_output(output) {
-    QString objectPath = QString("/org/buddiesofbudgie/BudgieDaemon/Displays/Outputs/%1").arg(output->getIdentifier());
+  OutputService::OutputService(QSharedPointer<Outputs::Wlr::MetaHead> output, QObject* parent) : QObject(parent), m_output(output) {
+    QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1").arg(output->getIdentifier());
     m_adaptor          = new OutputAdaptor(this);
     QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAdaptors);
   }
@@ -27,14 +27,14 @@ namespace bd {
   QStringList OutputService::GetAvailableModes() {
     QStringList modePaths;
     for (const auto& mode : m_output->getModes()) {
-      modePaths << QString("/org/buddiesofbudgie/BudgieDaemon/Displays/Outputs/%1/Modes/%2").arg(m_output->getIdentifier()).arg(mode->getId());
+      modePaths << QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(m_output->getIdentifier()).arg(mode->getId());
     }
     return modePaths;
   }
 
   QString OutputService::GetCurrentMode() {
     auto mode = m_output->getCurrentMode();
-    if (mode) { return QString("/org/buddiesofbudgie/BudgieDaemon/Displays/Outputs/%1/Modes/%2").arg(m_output->getIdentifier()).arg(mode->getId()); }
+    if (mode) { return QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(m_output->getIdentifier()).arg(mode->getId()); }
     return QString();
   }
 
@@ -44,8 +44,8 @@ namespace bd {
     return 0;
   }
 
-  int OutputService::HorizontalAnchor() const {
-    return static_cast<int>(m_output->getHorizontalAnchor());
+  QString OutputService::HorizontalAnchor() const {
+    return bd::Outputs::Config::HorizontalAnchor::toString(m_output->getHorizontalAnchor());
   }
 
   QString OutputService::Make() const {
@@ -90,8 +90,8 @@ namespace bd {
     return static_cast<quint8>(m_output->getTransform());
   }
 
-  int OutputService::VerticalAnchor() const {
-    return static_cast<int>(m_output->getVerticalAnchor());
+  QString OutputService::VerticalAnchor() const {
+    return bd::Outputs::Config::VerticalAnchor::toString(m_output->getVerticalAnchor());
   }
 
   int OutputService::Width() const {

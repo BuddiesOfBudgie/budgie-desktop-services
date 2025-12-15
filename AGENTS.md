@@ -9,7 +9,7 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
 - Core purpose: Budgie Desktop Services is the future central hub and orchestrator for Budgie Desktop (with a focus on Budgie 11). Today, it primarily provides Wayland-native display configuration for Budgie 10.10; over time it will coordinate broader desktop logic for Budgie 11.
 - Wayland protocol: `wlr-output-management-unstable-v1`.
 - DBus API: XML schemas in `src/dbus/schemas/` → generated adaptors in `src/dbus/generated/`.
-- Output model: meta heads/modes exposed via services under `org.buddiesofbudgie.BudgieDaemon`.
+- Output model: meta heads/modes exposed via services under `org.buddiesofbudgie.Services`.
 
 ### Command cheatsheet (Taskfile)
 
@@ -42,7 +42,7 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
 3) Implement the service methods/properties:
    - Add declarations to the corresponding header in `src/dbus/*.hpp` under `public slots` or as properties.
    - Implement logic in `src/dbus/*.cpp`.
-   - Prefer using `WaylandOrchestrator::instance().getManager()->getHeads()` to enumerate outputs.
+   - Prefer using `State::instance().getManager()->getHeads()` to enumerate outputs.
    - Primary selection: when asked to resolve a "primary" output, prefer heads where `isPrimary()` is true; fall back to the first available head.
 
 4) Register new objects if needed:
@@ -58,8 +58,8 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
   - Add `GetPrimaryOutput` returning a string serial/identifier.
   - Add `GetPrimaryOutputRect` returning a QVariantMap with keys: `X`, `Y`, `Width`, `Height`.
 - Regenerate adaptors: `task qdbus-gen`.
-- Implement methods in `dbus/DisplayService.hpp/.cpp`:
-  - Use `WaylandOrchestrator` → `WaylandOutputManager` → heads.
+- Implement methods in `dbus/OutputsService.hpp/.cpp`:
+  - Use `State` → `WaylandOutputManager` → heads.
   - Choose primary via `head->isPrimary()`; otherwise first head.
   - For geometry, use `head->getPosition()` and its current mode size (`getCurrentMode()->getSize()`), mirroring the QVariantMap style used by `OutputModeService::GetModeInfo()`.
 

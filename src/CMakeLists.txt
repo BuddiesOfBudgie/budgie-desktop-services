@@ -14,53 +14,64 @@ ecm_add_qtwayland_client_protocol(
 
 add_library(
   budgie-desktop-services STATIC
+  # Config
   config/display.cpp
   config/display.hpp
   config/format.hpp
   config/utils.cpp
   config/utils.hpp
-  dbus/generated/BatchSystemAdaptorGen.cpp
-  dbus/generated/BatchSystemAdaptorGen.h
-  dbus/generated/DisplayAdaptorGen.cpp
-  dbus/generated/DisplayAdaptorGen.h
+  # DBus (Generated)
+  dbus/generated/ConfigAdaptorGen.cpp
+  dbus/generated/ConfigAdaptorGen.h
+  dbus/generated/OutputsAdaptorGen.cpp
+  dbus/generated/OutputsAdaptorGen.h
   dbus/generated/OutputAdaptorGen.cpp
   dbus/generated/OutputAdaptorGen.h
   dbus/generated/OutputModeAdaptorGen.cpp
   dbus/generated/OutputModeAdaptorGen.h
+  # DBus Services
   dbus/DisplaySchemaTypes.hpp
-  dbus/BatchSystemService.cpp
-  dbus/BatchSystemService.hpp
+  dbus/ConfigService.cpp
+  dbus/ConfigService.hpp
   dbus/DisplayObjectManager.cpp
   dbus/DisplayObjectManager.hpp
-  dbus/DisplayService.cpp
-  dbus/DisplayService.hpp
+  dbus/OutputsService.cpp
+  dbus/OutputsService.hpp
   dbus/OutputModeService.cpp
   dbus/OutputModeService.hpp
   dbus/OutputService.cpp
   dbus/OutputService.hpp
-  displays/batch-system/CalculationResult.cpp
-  displays/batch-system/CalculationResult.hpp
-  displays/batch-system/ConfigurationAction.cpp
-  displays/batch-system/ConfigurationAction.hpp
-  displays/batch-system/ConfigurationBatchSystem.cpp
-  displays/batch-system/ConfigurationBatchSystem.hpp
-  displays/batch-system/enums.hpp
-  displays/batch-system/OutputTargetState.cpp
-  displays/batch-system/OutputTargetState.hpp
-  displays/configuration.cpp
-  displays/configuration.hpp
-  displays/output-manager/head/enums.hpp
-  displays/output-manager/head/WaylandOutputHead.cpp
-  displays/output-manager/head/WaylandOutputHead.hpp
-  displays/output-manager/head/WaylandOutputMetaHead.cpp
-  displays/output-manager/head/WaylandOutputMetaHead.hpp
-  displays/output-manager/mode/enums.hpp
-  displays/output-manager/mode/WaylandOutputMetaMode.cpp
-  displays/output-manager/mode/WaylandOutputMetaMode.hpp
-  displays/output-manager/mode/WaylandOutputMode.cpp
-  displays/output-manager/mode/WaylandOutputMode.hpp
-  displays/output-manager/WaylandOutputManager.cpp
-  displays/output-manager/WaylandOutputManager.hpp
+  # Batch System
+  outputs/config/enums/actiontype.hpp
+  outputs/config/enums/anchors.hpp
+  outputs/config/action.cpp
+  outputs/config/action.hpp
+  outputs/config/model.cpp
+  outputs/config/model.hpp
+  outputs/config/result.cpp
+  outputs/config/result.hpp
+  outputs/config/targetstate.cpp
+  outputs/config/targetstate.hpp
+  # Output (wlroots-specific)
+  outputs/wlr/configuration.cpp
+  outputs/wlr/configuration.hpp
+  outputs/wlr/configurationhead.cpp
+  outputs/wlr/configurationhead.hpp
+  outputs/wlr/enums.hpp
+  outputs/wlr/head.cpp
+  outputs/wlr/head.hpp
+  outputs/wlr/metahead.cpp
+  outputs/wlr/metahead.hpp
+  outputs/wlr/metamode.cpp
+  outputs/wlr/metamode.hpp
+  outputs/wlr/mode.cpp
+  outputs/wlr/mode.hpp
+  outputs/wlr/outputmanager.cpp
+  outputs/wlr/outputmanager.hpp
+  # Output State
+  outputs/state.cpp
+  outputs/state.hpp
+  # System
   sys/SysInfo.cpp
   sys/SysInfo.hpp
 )
@@ -86,7 +97,7 @@ set_target_properties(
                                   "org.buddiesofbudgie.Services")
 
 install(TARGETS budgie-desktop-services-app ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
-install(FILES dbus/org.buddiesofbudgie.BudgieDaemon.conf
+install(FILES dbus/org.buddiesofbudgie.Services.conf
         DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/system.d)
 
 
