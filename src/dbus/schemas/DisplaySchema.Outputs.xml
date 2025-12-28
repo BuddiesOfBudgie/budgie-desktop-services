@@ -1,20 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node name="/org/buddiesofbudgie/Services/Outputs">
     <interface name="org.buddiesofbudgie.Services.Outputs">
-        <method name="GetAvailableOutputs">
-            <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QStringList"/>
-            <arg name="outputSerials" type="as" direction="out"/>
-        </method>
-        <method name="GetPrimaryOutput">
-            <arg name="outputSerial" type="s" direction="out"/>
-        </method>
-        <method name="GetPrimaryOutputRect">
-            <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
-            <arg name="rect" type="a{sv}" direction="out"/>
-        </method>
-        <method name="GetGlobalRect">
-            <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
-            <arg name="rect" type="a{sv}" direction="out"/>
-        </method>
+        <property name="AvailableOutputs" type="as" access="read"/>
+        <property name="GlobalRect" type="a{sv}" access="read">
+            <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+        </property>
+        <property name="PrimaryOutput" type="s" access="read"/>
+        <property name="PrimaryOutputRect" type="a{sv}" access="read">
+            <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+        </property>
     </interface>
 </node>

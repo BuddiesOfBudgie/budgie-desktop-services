@@ -8,15 +8,19 @@
 namespace bd {
   class OutputsService : public QObject, protected QDBusContext {
       Q_OBJECT
+      Q_PROPERTY(QStringList AvailableOutputs READ AvailableOutputs)
+      Q_PROPERTY(QVariantMap GlobalRect READ GlobalRect)
+      Q_PROPERTY(QString PrimaryOutput READ PrimaryOutput)
+      Q_PROPERTY(QVariantMap PrimaryOutputRect READ PrimaryOutputRect)
 
     public:
       explicit OutputsService(QObject* parent = nullptr);
       ~OutputsService() = default;
 
-    public Q_SLOTS:
-      QStringList GetAvailableOutputs();
-      QVariantMap GetGlobalRect();
-      QString     GetPrimaryOutput();
-      QVariantMap GetPrimaryOutputRect();
+      // Property getters
+      QStringList AvailableOutputs() const;
+      QVariantMap GlobalRect() const;
+      QString     PrimaryOutput() const;
+      QVariantMap PrimaryOutputRect() const;
   };
 }

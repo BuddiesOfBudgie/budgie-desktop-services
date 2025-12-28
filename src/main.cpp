@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 
   app.connect(&orchestrator, &bd::Outputs::State::ready, &bd::DisplayConfig::instance(), &bd::DisplayConfig::apply);
 
-  bd::OutputsService displayService;
+  bd::OutputsService outputsService;
   bd::ConfigService  configService;
 
   app.connect(&orchestrator, &bd::Outputs::State::ready, &app, []() {
@@ -46,6 +46,8 @@ int main(int argc, char* argv[]) {
     if (!QDBusConnection::sessionBus().registerService("org.buddiesofbudgie.Services")) {
       qCritical() << "Failed to acquire DBus service name org.buddiesofbudgie.Services";
     }
+
+    qInfo() << "Registering DBus services for outputs and modes";
 
     for (const auto& output : manager->getHeads()) {
       if (!output) continue;

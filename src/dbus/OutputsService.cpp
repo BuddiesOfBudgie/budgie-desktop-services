@@ -12,7 +12,7 @@ namespace bd {
     }
   }
 
-  QStringList OutputsService::GetAvailableOutputs() {
+  QStringList OutputsService::AvailableOutputs() const {
     auto outputs = QStringList {};
     for (const auto& output : bd::Outputs::State::instance().getManager()->getHeads()) { outputs.append(output->getIdentifier()); }
     return outputs;
@@ -30,13 +30,13 @@ namespace bd {
     return heads.first();
   }
 
-  QString OutputsService::GetPrimaryOutput() {
+  QString OutputsService::PrimaryOutput() const {
     auto head = getPrimaryOrFirstHead();
     if (!head) return QString();
     return head->getIdentifier();
   }
 
-  QVariantMap OutputsService::GetPrimaryOutputRect() {
+  QVariantMap OutputsService::PrimaryOutputRect() const {
     QVariantMap rect;
     auto        head = getPrimaryOrFirstHead();
     if (!head) return rect;
@@ -62,7 +62,7 @@ namespace bd {
     return rect;
   }
 
-  QVariantMap OutputsService::GetGlobalRect() {
+  QVariantMap OutputsService::GlobalRect() const {
     QVariantMap rect;
     auto        calculationResult = bd::Outputs::Config::Model::instance().getCalculationResult();
     if (!calculationResult) return rect;
