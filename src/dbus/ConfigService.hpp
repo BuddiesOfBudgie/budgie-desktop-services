@@ -8,6 +8,7 @@
 namespace bd {
   class ConfigService : public QObject, protected QDBusContext {
       Q_OBJECT
+      Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.Config")
 
     public:
       explicit ConfigService(QObject* parent = nullptr);

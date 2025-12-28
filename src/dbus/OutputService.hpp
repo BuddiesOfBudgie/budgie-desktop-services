@@ -9,6 +9,7 @@
 namespace bd {
   class OutputService : public QObject, protected QDBusContext {
       Q_OBJECT
+      Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.Output")
       Q_PROPERTY(QString Serial READ Serial)
       Q_PROPERTY(QString Name READ Name)
       Q_PROPERTY(QString Description READ Description)

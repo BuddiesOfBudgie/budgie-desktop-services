@@ -9,6 +9,7 @@
 namespace bd {
   class OutputModeService : public QObject, protected QDBusContext {
       Q_OBJECT
+      Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.OutputMode")
       Q_PROPERTY(int Width READ Width)
       Q_PROPERTY(int Height READ Height)
       Q_PROPERTY(qulonglong RefreshRate READ RefreshRate)
