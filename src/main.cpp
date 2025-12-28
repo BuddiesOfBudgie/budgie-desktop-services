@@ -55,6 +55,7 @@ int main(int argc, char* argv[]) {
       QString outputId = output->getIdentifier();
 
       if (m_outputServices.contains(outputId)) continue;
+      qInfo() << "Registering DBus service for output" << outputId;
 
       auto* outputService        = new bd::OutputService(output);
       m_outputServices[outputId] = outputService;

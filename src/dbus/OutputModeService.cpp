@@ -10,7 +10,7 @@ namespace bd {
   OutputModeService::OutputModeService(QSharedPointer<bd::Outputs::Wlr::MetaMode> mode, const QString& outputId, QObject* parent)
       : QObject(parent), m_mode(mode), m_outputId(outputId) {
     QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(outputId).arg(mode->getId());
-    QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAdaptors);
+    QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents);
   }
 
   int OutputModeService::Width() const {

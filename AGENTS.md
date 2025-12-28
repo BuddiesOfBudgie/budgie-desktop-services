@@ -21,8 +21,6 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
   - Or together: `task cook`
 - Install (autostart assets, systemd user unit depending on CMake options):
   - `sudo task install`
-- Regenerate D-Bus adaptors from XML:
-  - `task qdbus-gen`
 - Format code:
   - `task fmt`
 - Wayland debug (run built binary under `wldbg`):
@@ -35,9 +33,7 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
    - For QVariantMap outputs, include the Qt DBus type annotation:
      - `<annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>`
 
-2) Regenerate adaptor code:
-   - `task qdbus-gen`
-   - Do not hand-edit files in `src/dbus/generated/`.
+2) Rebuild using `task build` as we generate adaptor code via cmake + qdbusgen
 
 3) Implement the service methods/properties:
    - Add declarations to the corresponding header in `src/dbus/*.hpp` under `public slots` or as properties.
@@ -57,7 +53,7 @@ It summarizes common workflows (especially around D-Bus schema changes and code 
 - Schema changes (Display service examples):
   - Add `GetPrimaryOutput` returning a string serial/identifier.
   - Add `GetPrimaryOutputRect` returning a QVariantMap with keys: `X`, `Y`, `Width`, `Height`.
-- Regenerate adaptors: `task qdbus-gen`.
+- Regenerate adaptors: `task build`.
 - Implement methods in `dbus/OutputsService.hpp/.cpp`:
   - Use `State` → `WaylandOutputManager` → heads.
   - Choose primary via `head->isPrimary()`; otherwise first head.
