@@ -48,6 +48,5 @@
         <signal name="TransformChanged">
             <arg name="transform" type="y"/>
         </signal>
-        <annotation name="org.qtproject.QtDBus.CppIncludes" value="types.hpp"/>
     </interface>
 </node>

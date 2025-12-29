@@ -20,7 +20,6 @@ set(budgie-desktop-services_SRCS
   config/utils.cpp
   config/utils.hpp
   # DBus Services
-  dbus/DisplaySchemaTypes.hpp
   dbus/ConfigService.cpp
   dbus/ConfigService.hpp
   # Batch System
