@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QMetaEnum>
 #include <QString>
+#include <QDBusMetaType>
 
 namespace bd::Outputs::Wlr {
   class MetaHeadProperty : public QObject {

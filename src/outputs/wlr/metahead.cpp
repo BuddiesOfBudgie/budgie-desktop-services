@@ -1,10 +1,13 @@
 #include <QCryptographicHash>
 #include <QtAlgorithms>
 #include <optional>
+#include <QDBusConnection>
+#include <QSize>
 
 #include "sys/SysInfo.hpp"
 #include "metahead.hpp"
 #include "head.hpp"
+#include "outputs/config/enums/anchors.hpp"
 
 namespace bd::Outputs::Wlr {
     MetaHead::MetaHead(QObject *parent, KWayland::Client::Registry *registry)
@@ -43,9 +46,6 @@ namespace bd::Outputs::Wlr {
         return m_current_mode;
     }
 
-    QString MetaHead::getDescription() {
-        return m_description;
-    }
 
     QSharedPointer<bd::Outputs::Wlr::Head> MetaHead::getHead() {
         return m_head;
@@ -96,28 +96,9 @@ namespace bd::Outputs::Wlr {
         return m_output_modes;
     }
 
-    QString MetaHead::getMake() {
-        return m_make;
-    }
-
-    QString MetaHead::getModel() {
-        return m_model;
-    }
-
-    QString MetaHead::getName() {
-        return m_name;
-    }
 
     QPoint MetaHead::getPosition() {
         return m_position;
-    }
-
-    double MetaHead::getScale() {
-        return m_scale;
-    }
-
-    int MetaHead::getTransform() {
-        return m_transform;
     }
 
     std::optional<::zwlr_output_head_v1*> MetaHead::getWlrHead() {
@@ -138,12 +119,115 @@ namespace bd::Outputs::Wlr {
         return !m_identifier.isNull() && !m_identifier.isEmpty();
     }
 
-    bool MetaHead::isEnabled() {
+    KvMap MetaHead::CurrentMode() const {
+        KvMap mode;
+        if (!m_current_mode) return mode;
+        auto mode_size = m_current_mode->getSize().value_or(QSize(0, 0));
+        auto mode_refresh = m_current_mode->getRefresh().value_or(0);
+        mode.insert("Path", QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(Serial()).arg(m_current_mode->getId()));
+        mode.insert("Height", mode_size.height());
+        mode.insert("Width", mode_size.width());
+        mode.insert("Refresh", m_current_mode->getRefresh().value_or(0));
+        return mode;
+    }
+
+    NestedKvMap MetaHead::Modes() const {
+        NestedKvMap modes;
+        for (const auto& mode_ptr: m_output_modes) {
+            if (!mode_ptr) continue;
+            KvMap mode;
+            auto mode_id = mode_ptr->getId();
+            auto mode_size = mode_ptr->getSize().value_or(QSize(0, 0));
+            auto mode_refresh = mode_ptr->getRefresh().value_or(0);
+            mode.insert("Path", QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(Serial()).arg(mode_id));
+            mode.insert("Height", mode_size.height());
+            mode.insert("Width", mode_size.width());
+            mode.insert("Refresh", mode_refresh);
+            modes.insert(mode_id, mode);
+        }
+        return modes;
+    }
+
+    QString MetaHead::Serial() const {
+        return const_cast<MetaHead*>(this)->getIdentifier();
+    }
+
+    QString MetaHead::Name() const {
+        return m_name;
+    }
+
+    QString MetaHead::Description() const {
+        return m_description;
+    }
+
+    QString MetaHead::Make() const {
+        return m_make;
+    }
+
+    QString MetaHead::Model() const {
+        return m_model;
+    }
+
+    bool MetaHead::Enabled() const {
         return m_enabled;
     }
 
-    bool MetaHead::isPrimary() {
+    int MetaHead::Width() const {
+        auto mode = m_current_mode;
+        if (mode) return mode->getSize().value_or(QSize(0, 0)).width();
+        return 0;
+    }
+
+    int MetaHead::Height() const {
+        auto mode = m_current_mode;
+        if (mode) return mode->getSize().value_or(QSize(0, 0)).height();
+        return 0;
+    }
+
+    int MetaHead::X() const {
+        return m_position.x();
+    }
+
+    int MetaHead::Y() const {
+        return m_position.y();
+    }
+
+    double MetaHead::Scale() const {
+        return m_scale;
+    }
+
+    qulonglong MetaHead::RefreshRate() const {
+        auto mode = m_current_mode;
+        if (mode) return static_cast<qulonglong>(mode->getRefresh().value_or(0.0));
+        return 0;
+    }
+
+    quint8 MetaHead::Transform() const {
+        return static_cast<quint8>(m_transform);
+    }
+
+    uint MetaHead::AdaptiveSync() const {
+        return static_cast<uint>(m_adaptive_sync);
+    }
+
+    bool MetaHead::Primary() const {
         return m_primary;
+    }
+
+    QString MetaHead::MirrorOf() const {
+        return QString(); /* TODO: implement if available */
+    }
+
+    QString MetaHead::HorizontalAnchor() const {
+        return bd::Outputs::Config::HorizontalAnchor::toString(m_horizontal_anchor);
+    }
+
+    QString MetaHead::VerticalAnchor() const {
+        return bd::Outputs::Config::VerticalAnchor::toString(m_vertical_anchor);
+    }
+
+    QString MetaHead::RelativeTo() const {
+        return m_relative_output;
     }
 
     // Setters
@@ -155,7 +239,7 @@ namespace bd::Outputs::Wlr {
         emit headAvailable();
         connect(head, &bd::Outputs::Wlr::Head::headFinished, this, &MetaHead::headDisconnected);
         connect(head, &bd::Outputs::Wlr::Head::modeAdded, this, &MetaHead::addMode);
-        connect(head, &bd::Outputs::Wlr::Head::modeChanged, this, &MetaHead::currentModeChanged);
+        connect(head, &bd::Outputs::Wlr::Head::modeChanged, this, &MetaHead::currentZwlrModeChanged);
         connect(head, &bd::Outputs::Wlr::Head::propertyChanged, this, &MetaHead::setProperty);
     }
 
@@ -173,12 +257,13 @@ namespace bd::Outputs::Wlr {
         qDebug() << "Setting position on head" << getIdentifier() << "to" << m_position.x() << m_position.y();
         m_position.setX(position.x());
         m_position.setY(position.y());
-        emit propertyChanged(MetaHeadProperty::Property::Position, QVariant{m_position});
+        emit positionChanged(m_position);
     }
 
     void MetaHead::setPrimary(bool primary) {
         if (m_primary == primary) return;
         m_primary = primary;
+        emit primaryChanged(m_primary);
     }
 
     void MetaHead::unsetModes() {
@@ -219,12 +304,13 @@ namespace bd::Outputs::Wlr {
                      << output_mode->getSize().value_or(QSize(0, 0))
                      << " and refresh: " << static_cast<qulonglong>(output_mode->getRefresh().value_or(0));
             m_output_modes.append(shared_ptr);
+            emit modesChanged();
         });
 
         return shared_ptr;
     }
 
-    void MetaHead::currentModeChanged(::zwlr_output_mode_v1 *mode) {
+    void MetaHead::currentZwlrModeChanged(::zwlr_output_mode_v1 *mode) {
         qDebug() << "Current mode changed for output: " << getIdentifier();
         for (const auto &output_mode_ptr: m_output_modes) {
             if (!output_mode_ptr || output_mode_ptr.isNull()) continue;
@@ -249,6 +335,12 @@ namespace bd::Outputs::Wlr {
                 qDebug() << "Setting current mode to" << outputModeSize.width() << "x" << outputModeSize.height() << "@"
                          << refresh;
                 m_current_mode = output_mode_ptr; // Set m_current_mode to same QSharedPointer as iterated output mode
+
+                emit modesChanged();
+                emit widthChanged(outputModeSize.width());
+                emit heightChanged(outputModeSize.height());
+                emit refreshRateChanged(refresh);
+                emit currentModeChanged(CurrentMode());
                 return;
             }
         }
@@ -287,40 +379,50 @@ namespace bd::Outputs::Wlr {
             case MetaHeadProperty::Property::AdaptiveSync:
                 m_adaptive_sync = static_cast<QtWayland::zwlr_output_head_v1::adaptive_sync_state>(value.toInt());
                 qDebug() << "Setting adaptive sync on head" << getIdentifier() << "to" << m_adaptive_sync;
+                emit adaptiveSyncChanged(m_adaptive_sync);
                 break;
             case MetaHeadProperty::Property::Description:
                 m_description = value.toString();
                 qDebug() << "Output head finished, emitting headNoLongerAvailable: " << getIdentifier()
                          << " with description: " << m_description;
+                emit descriptionChanged(m_description);
                 break;
             case MetaHeadProperty::Property::Enabled:
                 m_enabled = value.toBool();
                 qInfo() << "Setting enabled state on head" << getIdentifier() << "to" << m_enabled;
+                emit enabledChanged(m_enabled);
                 break;
             case MetaHeadProperty::Property::Make:
                 m_make = value.toString();
+                emit makeChanged(m_make);
                 break;
             case MetaHeadProperty::Property::Model:
                 m_model = value.toString();
+                emit modelChanged(m_model);
                 break;
             case MetaHeadProperty::Property::Name:
                 m_name = value.toString();
+                emit nameChanged(m_name);
                 break;
             case MetaHeadProperty::Property::Position:
                 m_position = value.toPoint();
                 qDebug() << "Setting position on head" << getIdentifier() << "to" << m_position.x() << m_position.y();
+                emit positionChanged(m_position);
                 break;
             case MetaHeadProperty::Property::Scale:
                 m_scale = value.toDouble();
                 qDebug() << "Setting scale on head" << getIdentifier() << "to" << m_scale;
+                emit scaleChanged(m_scale);
                 break;
             case MetaHeadProperty::Property::SerialNumber:
                 m_serial = value.toString();
                 qDebug() << "Setting serial number on head" << getIdentifier() << "to" << m_serial;
+                emit serialChanged(m_serial);
                 break;
             case MetaHeadProperty::Property::Transform:
                 m_transform = value.toInt();
                 qDebug() << "Setting transform on head" << getIdentifier() << "to" << m_transform;
+                emit transformChanged(m_transform);
                 break;
             // None or invalid property
             case MetaHeadProperty::Property::None:
@@ -332,14 +434,9 @@ namespace bd::Outputs::Wlr {
 
         // If the property was not changed, do nothing
         if (!changed) return;
-
-        emit propertyChanged(property, value);
     }
 
     // Anchoring/relative configuration accessors
-    QString MetaHead::getRelativeOutput() {
-        return m_relative_output;
-    }
 
     bd::Outputs::Config::HorizontalAnchor::Type MetaHead::getHorizontalAnchor() const {
         return m_horizontal_anchor;
@@ -367,5 +464,11 @@ namespace bd::Outputs::Wlr {
         m_vertical_anchor = vertical;
         qDebug() << "Vertical anchoring set for head" << getIdentifier()
                  << "v:" << bd::Outputs::Config::VerticalAnchor::toString(m_vertical_anchor);
+    }
+
+    // D-Bus registration
+    void MetaHead::registerDbusService() {
+        QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1").arg(getIdentifier());
+        QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents);
     }
 }

@@ -67,7 +67,7 @@ namespace bd::Outputs::Config {
         if (head.isNull()) return;
         qDebug() << "TargetState::setDefaultValues" << m_serial;
         auto headData = head.data();
-        m_on = headData->isEnabled();
+        m_on = headData->Enabled();
 
         auto modePtr = headData->getCurrentMode();
         if (!modePtr.isNull()) {
@@ -89,20 +89,18 @@ namespace bd::Outputs::Config {
         auto position = headData->getPosition();
         m_position = QPoint(position);
         qDebug() << "position" << m_position;
-        auto scale = headData->getScale();
-        m_scale = scale;
+        m_scale = headData->Scale();
 
-        auto transform = headData->getTransform();
-        m_transform = static_cast<quint8>(transform);
+        m_transform = headData->Transform();
 
         auto adaptiveSync = headData->getAdaptiveSync();
         m_adaptive_sync = static_cast<uint32_t>(adaptiveSync);
 
         // Default anchoring from meta head if present (user or config provided)
-        m_relative = headData->getRelativeOutput();
+        m_relative = headData->RelativeTo();
         m_horizontal_anchor = headData->getHorizontalAnchor();
         m_vertical_anchor = headData->getVerticalAnchor();
-        m_primary = headData->isPrimary();
+        m_primary = headData->Primary();
 
         qDebug() << "horizontalAnchor" << bd::Outputs::Config::HorizontalAnchor::toString(m_horizontal_anchor) << "\n" << "verticalAnchor" << bd::Outputs::Config::VerticalAnchor::toString(m_vertical_anchor) << "\n" << "primary" << m_primary;
     }

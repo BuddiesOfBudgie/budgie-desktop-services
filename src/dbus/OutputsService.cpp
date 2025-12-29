@@ -14,7 +14,7 @@ namespace bd {
 
   QStringList OutputsService::AvailableOutputs() const {
     auto outputs = QStringList {};
-    for (const auto& output : bd::Outputs::State::instance().getManager()->getHeads()) { outputs.append(output->getIdentifier()); }
+    for (const auto& output : bd::Outputs::State::instance().getManager()->getHeads()) { outputs.append(output->Serial()); }
     return outputs;
   }
 
@@ -25,7 +25,7 @@ namespace bd {
     if (heads.isEmpty()) return nullptr;
 
     for (const auto& head : heads) {
-      if (head && head->isPrimary()) return head;
+      if (head && head->Primary()) return head;
     }
     return heads.first();
   }
@@ -33,7 +33,7 @@ namespace bd {
   QString OutputsService::PrimaryOutput() const {
     auto head = getPrimaryOrFirstHead();
     if (!head) return QString();
-    return head->getIdentifier();
+    return head->Serial();
   }
 
   QVariantMap OutputsService::PrimaryOutputRect() const {
@@ -42,8 +42,8 @@ namespace bd {
     if (!head) return rect;
 
     // Populate QRect-like map similar to GetModeInfo pattern
-    int  x    = head->getPosition().x();
-    int  y    = head->getPosition().y();
+    int  x    = head->X();
+    int  y    = head->Y();
     int  w    = 0;
     int  h    = 0;
     auto mode = head->getCurrentMode();

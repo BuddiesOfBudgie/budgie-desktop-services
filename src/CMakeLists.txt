@@ -27,8 +27,6 @@ set(budgie-desktop-services_SRCS
   dbus/OutputsService.hpp
   dbus/OutputModeService.cpp
   dbus/OutputModeService.hpp
-  dbus/OutputService.cpp
-  dbus/OutputService.hpp
   # Batch System
   outputs/config/enums/actiontype.hpp
   outputs/config/enums/anchors.hpp
@@ -40,6 +38,8 @@ set(budgie-desktop-services_SRCS
   outputs/config/result.hpp
   outputs/config/targetstate.cpp
   outputs/config/targetstate.hpp
+  # Output
+  outputs/types.hpp
   # Output (wlroots-specific)
   outputs/wlr/configuration.cpp
   outputs/wlr/configuration.hpp
@@ -66,7 +66,7 @@ set(budgie-desktop-services_SRCS
 
 qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Config.xml dbus/ConfigService.hpp bd::ConfigService)
 qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Outputs.xml dbus/OutputsService.hpp bd::OutputsService)
-qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Output.xml dbus/OutputService.hpp bd::OutputService)
+qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Output.xml outputs/wlr/metahead.hpp bd::Outputs::Wlr::MetaHead)
 qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.OutputMode.xml dbus/OutputModeService.hpp bd::OutputModeService)
 
 add_library(

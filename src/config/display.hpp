@@ -76,17 +76,17 @@ namespace bd {
     public:
       DisplayGroupOutputConfig(QObject* parent = nullptr);
 
-      bool                                                 getAdaptiveSync() const;
-      bool                                                 getDisabled() const;
-      int                                                  getHeight() const;
-      QString                                              getRelativeOutput() const;
+      bool                                        getAdaptiveSync() const;
+      bool                                        getDisabled() const;
+      int                                         getHeight() const;
+      QString                                     getRelativeOutput() const;
       bd::Outputs::Config::HorizontalAnchor::Type getHorizontalAnchor() const;
       bd::Outputs::Config::VerticalAnchor::Type   getVerticalAnchor() const;
-      qulonglong                                           getRefresh() const;
-      int                                                  getRotation() const;
-      double                                               getScale() const;
-      QString                                              getIdentifier() const;
-      int                                                  getWidth() const;
+      qulonglong                                  getRefresh() const;
+      int                                         getRotation() const;
+      double                                      getScale() const;
+      QString                                     getIdentifier() const;
+      int                                         getWidth() const;
 
       toml::ordered_value toToml();
 
@@ -103,16 +103,16 @@ namespace bd {
       void setWidth(int width);
 
     protected:
-      QString                                              m_identifier;
-      int                                                  m_width;
-      int                                                  m_height;
-      qulonglong                                           m_refresh;
-      QString                                              m_relative_output;
+      QString                                     m_identifier;
+      int                                         m_width;
+      int                                         m_height;
+      qulonglong                                  m_refresh;
+      QString                                     m_relative_output;
       bd::Outputs::Config::HorizontalAnchor::Type m_horizontal_anchor;
       bd::Outputs::Config::VerticalAnchor::Type   m_vertical_anchor;
-      double                                               m_scale;
-      int                                                  m_rotation;
-      bool                                                 m_adaptive_sync;
-      bool                                                 m_disabled;
+      double                                      m_scale;
+      int                                         m_rotation;
+      bool                                        m_adaptive_sync;
+      bool                                        m_disabled;
   };
 }

@@ -205,14 +205,14 @@ namespace bd {
       config->setRefresh(mode_refresh);
 
       // Use meta-head anchoring if present so config can persist it
-      config->setRelativeOutput(head->getRelativeOutput());
+      config->setRelativeOutput(head->RelativeTo());
       config->setHorizontalAnchor(head->getHorizontalAnchor());
       config->setVerticalAnchor(head->getVerticalAnchor());
 
-      config->setScale(head->getScale());
-      config->setRotation(head->getTransform());
+      config->setScale(head->Scale());
+      config->setRotation(head->Transform());
       config->setAdaptiveSync(head->getAdaptiveSync() != 0);
-      config->setDisabled(!head->isEnabled());
+      config->setDisabled(!head->Enabled());
       defaultDisplayGroupForState->addConfig(config);
       // config->deleteLater();
     }

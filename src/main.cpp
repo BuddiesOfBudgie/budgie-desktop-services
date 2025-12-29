@@ -6,13 +6,18 @@
 #include "config/display.hpp"
 #include "dbus/ConfigService.hpp"
 #include "dbus/OutputModeService.hpp"
-#include "dbus/OutputService.hpp"
 #include "dbus/OutputsService.hpp"
 #include "outputs/configuration.hpp"
 #include "outputs/state.hpp"
+#include "outputs/types.hpp"
+#include "outputs/wlr/metahead.hpp"
 
 int main(int argc, char* argv[]) {
   QCoreApplication app(argc, argv);
+  // Register meta types for individual mode and modes info used in output
+  qDBusRegisterMetaType<bd::Outputs::KvMap>();
+  qDBusRegisterMetaType<bd::Outputs::NestedKvMap>();
+
   qSetMessagePattern("[%{type}] %{if-debug}[%{file}:%{line} %{function}]%{endif}%{message}");
   if (!QDBusConnection::sessionBus().isConnected()) {
     qCritical() << "Cannot connect to the session bus";
@@ -36,8 +41,8 @@ int main(int argc, char* argv[]) {
     qInfo() << "Wayland Orchestrator ready";
     qInfo() << "Starting Display DBus Service now (outputs/modes)";
 
-    QMap<QString, bd::OutputService*>     m_outputServices;
-    QMap<QString, bd::OutputModeService*> m_modeServices;
+    QMap<QString, bd::Outputs::Wlr::MetaHead*> m_outputServices;
+    QMap<QString, bd::OutputModeService*>      m_modeServices;
 
     auto manager = bd::Outputs::State::instance().getManager();
 
@@ -57,8 +62,8 @@ int main(int argc, char* argv[]) {
       if (m_outputServices.contains(outputId)) continue;
       qInfo() << "Registering DBus service for output" << outputId;
 
-      auto* outputService        = new bd::OutputService(output);
-      m_outputServices[outputId] = outputService;
+      output->registerDbusService();
+      m_outputServices[outputId] = output.data();
 
       for (const auto& mode : output->getModes()) {
         if (!mode) continue;

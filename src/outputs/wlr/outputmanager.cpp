@@ -12,7 +12,7 @@ namespace bd::Outputs::Wlr {
     // Overridden methods from QtWayland::zwlr_output_manager_v1
     void OutputManager::zwlr_output_manager_v1_head(zwlr_output_head_v1* wlr_head) {
     auto head = new bd::Outputs::Wlr::MetaHead(nullptr, m_registry);
-    qInfo() << "OutputManager::zwlr_output_manager_v1_head with id:" << head->getIdentifier() << ", description:" << head->getDescription();
+    qInfo() << "OutputManager::zwlr_output_manager_v1_head with id:" << head->getIdentifier() << ", description:" << head->Description();
 
     connect(head, &bd::Outputs::Wlr::MetaHead::headAvailable, this, [this, head]() {
         qDebug() << "Head available for output: " << head->getIdentifier();
@@ -57,14 +57,14 @@ namespace bd::Outputs::Wlr {
     qDebug() << "Applying no-op configuration for non-specified heads. Ignoring:" << serials.join(", ");
 
     for (const auto& o : m_heads) {
-        qDebug() << "Checking head " << o->getIdentifier() << ": " << o->getDescription();
+        qDebug() << "Checking head " << o->getIdentifier() << ": " << o->Description();
         // Skip the output for the serial we are changing
         if (serials.contains(o->getIdentifier())) {
         qDebug() << "Skipping head " << o->getIdentifier();
         continue;
         }
 
-        if (o->isEnabled()) {
+        if (o->Enabled()) {
         qDebug() << "Ensuring head " << o->getIdentifier() << " is enabled";
         auto head = config->enable(o.data());
         if (!head) {
