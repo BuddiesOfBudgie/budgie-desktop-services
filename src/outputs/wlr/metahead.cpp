@@ -243,12 +243,14 @@ namespace bd::Outputs::Wlr {
         m_position.setX(position.x());
         m_position.setY(position.y());
         emit positionChanged(m_position);
+        emit stateChanged();
     }
 
     void MetaHead::setPrimary(bool primary) {
         if (m_primary == primary) return;
         m_primary = primary;
         emit primaryChanged(m_primary);
+        emit stateChanged();
     }
 
     void MetaHead::unsetModes() {
@@ -326,6 +328,7 @@ namespace bd::Outputs::Wlr {
                 emit heightChanged(outputModeSize.height());
                 emit refreshRateChanged(refresh);
                 emit currentModeChanged(CurrentMode());
+                emit stateChanged();
                 return;
             }
         }
@@ -355,6 +358,7 @@ namespace bd::Outputs::Wlr {
         m_head.clear();
         m_is_available = false;
         emit headNoLongerAvailable();
+        emit stateChanged();
     }
 
     void MetaHead::setProperty(MetaHeadProperty::Property property, const QVariant &value) {
@@ -376,6 +380,7 @@ namespace bd::Outputs::Wlr {
                 m_enabled = value.toBool();
                 qInfo() << "Setting enabled state on head" << getIdentifier() << "to" << m_enabled;
                 emit enabledChanged(m_enabled);
+                emit stateChanged();
                 break;
             case MetaHeadProperty::Property::Make:
                 m_make = value.toString();
@@ -393,6 +398,7 @@ namespace bd::Outputs::Wlr {
                 m_position = value.toPoint();
                 qDebug() << "Setting position on head" << getIdentifier() << "to" << m_position.x() << m_position.y();
                 emit positionChanged(m_position);
+                emit stateChanged();
                 break;
             case MetaHeadProperty::Property::Scale:
                 m_scale = value.toDouble();
@@ -454,6 +460,16 @@ namespace bd::Outputs::Wlr {
     // D-Bus registration
     void MetaHead::registerDbusService() {
         QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1").arg(getIdentifier());
-        QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents);
+        qInfo() << "Registering DBus service for output" << getIdentifier() << "at path" << objectPath;
+        if (!QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents)) {
+            qCritical() << "Failed to register DBus object at path" << objectPath;
+            return;
+        }
+
+        // Register all modes for this output
+        for (const auto& mode : m_output_modes) {
+            if (!mode) continue;
+            mode->registerDbusService();
+        }
     }
 }

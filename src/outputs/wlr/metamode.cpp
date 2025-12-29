@@ -105,7 +105,10 @@ namespace bd::Outputs::Wlr {
         if (!head) return;
         auto outputId = head->getIdentifier();
         QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(outputId).arg(m_id);
-        QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents);
+        qDebug() << "Registering DBus service for mode" << m_id << "at path" << objectPath;
+        if (!QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents)) {
+            qWarning() << "Failed to register DBus object at path" << objectPath;
+        }
     }
 
     // Setters

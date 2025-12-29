@@ -111,6 +111,7 @@ namespace bd::Outputs::Wlr {
         void headAvailable();
 
         void headNoLongerAvailable();
+        void stateChanged();
 
         void adaptiveSyncChanged(uint adaptiveSync);
         void currentModeChanged(const QVariantMap &currentMode);

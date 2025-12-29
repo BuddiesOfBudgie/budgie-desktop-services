@@ -30,6 +30,8 @@ namespace bd::Outputs::Wlr {
   
       signals:
         void done();
+        void headAdded(QSharedPointer<bd::Outputs::Wlr::MetaHead> head);
+        void headRemoved(QSharedPointer<bd::Outputs::Wlr::MetaHead> head);
   
       protected:
         void zwlr_output_manager_v1_head(zwlr_output_head_v1* head) override;

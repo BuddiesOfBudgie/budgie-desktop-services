@@ -23,8 +23,6 @@ set(budgie-desktop-services_SRCS
   dbus/DisplaySchemaTypes.hpp
   dbus/ConfigService.cpp
   dbus/ConfigService.hpp
-  dbus/OutputsService.cpp
-  dbus/OutputsService.hpp
   # Batch System
   outputs/config/enums/actiontype.hpp
   outputs/config/enums/anchors.hpp
@@ -63,7 +61,7 @@ set(budgie-desktop-services_SRCS
 )
 
 qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Config.xml dbus/ConfigService.hpp bd::ConfigService)
-qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Outputs.xml dbus/OutputsService.hpp bd::OutputsService)
+qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Outputs.xml outputs/state.hpp bd::Outputs::State)
 qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.Output.xml outputs/wlr/metahead.hpp bd::Outputs::Wlr::MetaHead)
 qt_add_dbus_adaptor(budgie-desktop-services_SRCS dbus/schemas/DisplaySchema.OutputMode.xml outputs/wlr/metamode.hpp bd::Outputs::Wlr::MetaMode)
 

@@ -29,7 +29,9 @@ namespace bd::Outputs::Wlr {
 
         if (!headAlreadyExists) {
             qDebug() << "Adding new head for output: " << head->getIdentifier();
-            m_heads.append(QSharedPointer<bd::Outputs::Wlr::MetaHead>(head));
+            auto sharedHead = QSharedPointer<bd::Outputs::Wlr::MetaHead>(head);
+            m_heads.append(sharedHead);
+            emit headAdded(sharedHead);
         }
     });
 
