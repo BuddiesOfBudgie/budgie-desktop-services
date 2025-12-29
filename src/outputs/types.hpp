@@ -1,7 +1,6 @@
 #pragma once
-#include <QMetaType>
-
 #include <QMap>
+#include <QMetaType>
 #include <QVariant>
 
 namespace bd::Outputs {

@@ -270,28 +270,43 @@ namespace bd::Outputs::Wlr {
 
         connect(output_mode, &bd::Outputs::Wlr::MetaMode::done, this, [this, output_mode, shared_ptr]() {
             // Check if this already exists
+            qDebug() << "Done triggered for mode" << output_mode->Id() << "on head" << getIdentifier();
+            auto found_matching_mode = false;
+            auto matching_mode_is_current = false;
+
+            qDebug() << "Checking existing modes for any matches to this one.";
             for (const auto &mode_ptr: m_output_modes) {
                 if (!mode_ptr) continue;
                 auto existing_mode = mode_ptr.data();
-                // Already exists, set the wlr_mode of the existing mode and delete this newly created meta mode
+                qDebug() << "Checking existing mode" << existing_mode->Id() << "for a match.";
+                // Already exists, delete the existing mode and add the new one
                 if (existing_mode->isSameAs(output_mode)) {
-                    qDebug() << "Found an output mode that matches one we already have, deleting the new one.";
-                    auto wlr_mode_opt = output_mode->getWlrMode();
-                    if (wlr_mode_opt.has_value() && wlr_mode_opt.value() != nullptr) {
-                        qDebug() << "Setting existing mode to the new wlr_mode.";
-                        existing_mode->setMode(const_cast<::zwlr_output_mode_v1*>(wlr_mode_opt.value()));
-                    }
-//                    shared_ptr.clear();
-                    return;
+                    qDebug() << "Found an output mode (ID: " << existing_mode->Id() << ") that matches one we already have, deleting the old one.";
+                    found_matching_mode = true;
+                    m_output_modes.removeOne(mode_ptr);
+
+                    matching_mode_is_current = (m_current_mode == mode_ptr);
+                    
+                    break;
                 }
             }
 
             // Doesn't already exist, add it
-            qDebug() << "Adding new output mode to head: " << getIdentifier() << " with size: "
+            qDebug() << "Adding new output mode (ID: " << output_mode->Id() << ") to head: " << getIdentifier() << " with size: "
                      << output_mode->getSize().value_or(QSize(0, 0))
                      << " and refresh: " << static_cast<qulonglong>(output_mode->getRefresh().value_or(0));
+
             m_output_modes.append(shared_ptr);
+
             emit modesChanged();
+
+            if (found_matching_mode && matching_mode_is_current) {
+                qDebug() << "The old matching mode was the current mode, setting the current mode to the new one.";
+                m_current_mode = shared_ptr;
+                emit currentModeChanged(CurrentMode());
+            }
+
+            emit stateChanged();
         });
 
         return shared_ptr;
@@ -372,8 +387,7 @@ namespace bd::Outputs::Wlr {
                 break;
             case MetaHeadProperty::Property::Description:
                 m_description = value.toString();
-                qDebug() << "Output head finished, emitting headNoLongerAvailable: " << getIdentifier()
-                         << " with description: " << m_description;
+                qDebug() << "Setting description on head" << getIdentifier() << "to" << m_description;
                 emit descriptionChanged(m_description);
                 break;
             case MetaHeadProperty::Property::Enabled:
@@ -384,14 +398,17 @@ namespace bd::Outputs::Wlr {
                 break;
             case MetaHeadProperty::Property::Make:
                 m_make = value.toString();
+                qDebug() << "Setting make on head" << getIdentifier() << "to" << m_make;
                 emit makeChanged(m_make);
                 break;
             case MetaHeadProperty::Property::Model:
                 m_model = value.toString();
+                qDebug() << "Setting model on head" << getIdentifier() << "to" << m_model;
                 emit modelChanged(m_model);
                 break;
             case MetaHeadProperty::Property::Name:
                 m_name = value.toString();
+                qDebug() << "Setting name on head" << getIdentifier() << "to" << m_name;
                 emit nameChanged(m_name);
                 break;
             case MetaHeadProperty::Property::Position:

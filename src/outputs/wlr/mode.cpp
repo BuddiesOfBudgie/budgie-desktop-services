@@ -22,8 +22,4 @@ namespace bd::Outputs::Wlr {
   void Mode::zwlr_output_mode_v1_preferred() {
     emit propertyChanged(MetaModeProperty::Property::Preferred, QVariant::fromValue(true));
   }
-
-//  void WaylandOutputMode::zwlr_output_mode_v1_finished() {
-//    emit modeFinished();
-//  }
 }

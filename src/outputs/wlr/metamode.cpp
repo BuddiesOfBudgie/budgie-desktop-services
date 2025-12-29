@@ -120,7 +120,7 @@ namespace bd::Outputs::Wlr {
         }
         unsetMode(); // Unset any existing mode
 
-        qDebug() << "Setting new mode with Wayland object:" << (void*)wlr_mode;
+        qDebug() << "Creating new Mode with wlr mode:" << (void*)wlr_mode;
         auto mode = new Mode(wlr_mode);
         m_mode = QSharedPointer<Mode>(mode);
 
