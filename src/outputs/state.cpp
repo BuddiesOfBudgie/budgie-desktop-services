@@ -1,9 +1,9 @@
 #include "state.hpp"
 
 #include <KWayland/Client/registry.h>
+
 #include <QDBusConnection>
 #include <QMap>
-
 #include <cstring>
 
 #include "outputs/config/model.hpp"
@@ -12,8 +12,16 @@
 
 namespace bd::Outputs {
   State::State(QObject* parent)
-      : QObject(parent), m_registry(nullptr), m_display(nullptr), m_manager(nullptr), m_has_serial(false), m_serial(0), m_has_initted(false),
-        m_cached_primary_output(QString()), m_cached_global_rect(QVariantMap()), m_cached_primary_output_rect(QVariantMap()) {}
+      : QObject(parent),
+        m_registry(nullptr),
+        m_display(nullptr),
+        m_manager(nullptr),
+        m_has_serial(false),
+        m_serial(0),
+        m_has_initted(false),
+        m_cached_primary_output(QString()),
+        m_cached_global_rect(QVariantMap()),
+        m_cached_primary_output_rect(QVariantMap()) {}
 
   State& State::instance() {
     static State _instance(nullptr);
@@ -192,13 +200,12 @@ namespace bd::Outputs {
       }
 
       // Initialize cached values
-      m_cached_primary_output = getCurrentPrimaryOutput();
-      m_cached_global_rect = getCurrentGlobalRect();
+      m_cached_primary_output      = getCurrentPrimaryOutput();
+      m_cached_global_rect         = getCurrentGlobalRect();
       m_cached_primary_output_rect = getCurrentPrimaryOutputRect();
 
       // Connect to Model's configurationApplied signal to update global rect
-      connect(&bd::Outputs::Config::Model::instance(), &bd::Outputs::Config::Model::configurationApplied,
-              this, &State::checkAndEmitSignals);
+      connect(&bd::Outputs::Config::Model::instance(), &bd::Outputs::Config::Model::configurationApplied, this, &State::checkAndEmitSignals);
 
       emit ready();  // Haven't done our first init, emit that we are ready
     }

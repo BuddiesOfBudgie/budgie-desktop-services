@@ -60,9 +60,9 @@ namespace bd::Outputs {
       void checkAndEmitSignals();
 
     private:
-      void connectHeadSignals(QSharedPointer<Wlr::MetaHead> head);
-      void disconnectHeadSignals(QSharedPointer<Wlr::MetaHead> head);
-      QString getCurrentPrimaryOutput() const;
+      void        connectHeadSignals(QSharedPointer<Wlr::MetaHead> head);
+      void        disconnectHeadSignals(QSharedPointer<Wlr::MetaHead> head);
+      QString     getCurrentPrimaryOutput() const;
       QVariantMap getCurrentGlobalRect() const;
       QVariantMap getCurrentPrimaryOutputRect() const;
 

@@ -4,5 +4,5 @@
 #include <QVariant>
 
 namespace bd::Outputs {
-  typedef QMap<QString, QVariantMap>    NestedKvMap;
+  typedef QMap<QString, QVariantMap> NestedKvMap;
 }
