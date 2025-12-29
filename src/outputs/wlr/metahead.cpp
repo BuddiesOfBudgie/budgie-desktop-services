@@ -119,31 +119,16 @@ namespace bd::Outputs::Wlr {
         return !m_identifier.isNull() && !m_identifier.isEmpty();
     }
 
-    KvMap MetaHead::CurrentMode() const {
-        KvMap mode;
-        if (!m_current_mode) return mode;
-        auto mode_size = m_current_mode->getSize().value_or(QSize(0, 0));
-        auto mode_refresh = m_current_mode->getRefresh().value_or(0);
-        mode.insert("Path", QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(Serial()).arg(m_current_mode->getId()));
-        mode.insert("Height", mode_size.height());
-        mode.insert("Width", mode_size.width());
-        mode.insert("Refresh", m_current_mode->getRefresh().value_or(0));
-        return mode;
+    QVariantMap MetaHead::CurrentMode() const {
+        if (!m_current_mode) return QVariantMap();
+        return m_current_mode->toDBusVariantMap();
     }
 
     NestedKvMap MetaHead::Modes() const {
         NestedKvMap modes;
         for (const auto& mode_ptr: m_output_modes) {
             if (!mode_ptr) continue;
-            KvMap mode;
-            auto mode_id = mode_ptr->getId();
-            auto mode_size = mode_ptr->getSize().value_or(QSize(0, 0));
-            auto mode_refresh = mode_ptr->getRefresh().value_or(0);
-            mode.insert("Path", QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(Serial()).arg(mode_id));
-            mode.insert("Height", mode_size.height());
-            mode.insert("Width", mode_size.width());
-            mode.insert("Refresh", mode_refresh);
-            modes.insert(mode_id, mode);
+            modes.insert(mode_ptr->Id(), mode_ptr->toDBusVariantMap());
         }
         return modes;
     }

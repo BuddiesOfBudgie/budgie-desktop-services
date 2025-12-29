@@ -3,7 +3,7 @@
     <interface name="org.buddiesofbudgie.Services.Output">
         <property name="AdaptiveSync" type="u" access="read"/>
         <property name="CurrentMode" type="a{sv}" access="read">
-            <annotation name="org.qtproject.QtDBus.QtTypeName" value="bd::Outputs::KvMap"/>
+            <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
         </property>
         <property name="Description" type="s" access="read"/>
         <property name="Enabled" type="b" access="read"/>

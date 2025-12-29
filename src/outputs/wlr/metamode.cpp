@@ -1,4 +1,7 @@
+#include <QDBusConnection>
 #include <QPointer>
+
+#include "metahead.hpp"
 #include "metamode.hpp"
 
 namespace bd::Outputs::Wlr {
@@ -13,8 +16,41 @@ namespace bd::Outputs::Wlr {
         m_preferred = std::nullopt; // Clear preferred state
     }
 
-    QString MetaMode::getId() {
+    bool MetaMode::Available() const {
+        return m_is_available.has_value() && m_is_available.value();
+    }
+
+    bool MetaMode::Current() const {
+        auto head = qobject_cast<bd::Outputs::Wlr::MetaHead*>(parent());
+        if (!head) return false;
+        auto currentMode = head->getCurrentMode();
+        if (!currentMode) return false;
+        // Compare pointer identity
+        return currentMode.data() == this;
+    }
+
+    int MetaMode::Height() const {
+        auto size = m_size;
+        if (size.isEmpty() || size.isNull()) return 0;
+        return size.height();
+    }
+
+    QString MetaMode::Id() const {
         return m_id;
+    }
+
+    bool MetaMode::Preferred() const {
+        return m_preferred.has_value() && m_preferred.value();
+    }
+
+    qulonglong MetaMode::RefreshRate() const {
+        return m_refresh;
+    }
+
+    int MetaMode::Width() const {
+        auto size = m_size;
+        if (size.isEmpty() || size.isNull()) return 0;
+        return size.width();
     }
 
     std::optional<qulonglong> MetaMode::getRefresh() {
@@ -63,6 +99,15 @@ namespace bd::Outputs::Wlr {
         return same;
     }
 
+    // D-Bus registration
+    void MetaMode::registerDbusService() {
+        auto head = qobject_cast<bd::Outputs::Wlr::MetaHead*>(parent());
+        if (!head) return;
+        auto outputId = head->getIdentifier();
+        QString objectPath = QString("/org/buddiesofbudgie/Services/Outputs/%1/Modes/%2").arg(outputId).arg(m_id);
+        QDBusConnection::sessionBus().registerObject(objectPath, this, QDBusConnection::ExportAllContents);
+    }
+
     // Setters
 
     void MetaMode::setMode(::zwlr_output_mode_v1 *wlr_mode) {
@@ -75,7 +120,6 @@ namespace bd::Outputs::Wlr {
         qDebug() << "Setting new mode with Wayland object:" << (void*)wlr_mode;
         auto mode = new Mode(wlr_mode);
         m_mode = QSharedPointer<Mode>(mode);
-//        connect(mode, &Mode::modeFinished, this, &MetaMode::modeDisconnected);
 
         connect(mode, &Mode::propertyChanged,
                 this, &MetaMode::setProperty);
@@ -88,17 +132,27 @@ namespace bd::Outputs::Wlr {
         m_is_available = std::make_optional<bool>(false);
     }
 
+    QVariantMap MetaMode::toDBusVariantMap() const {
+        QVariantMap map;
+        map["Id"] = m_id;
+        map["Width"] = m_size.width();
+        map["Height"] = m_size.height();
+        map["RefreshRate"] = m_refresh;
+        map["Preferred"] = m_preferred.has_value() && m_preferred.value();
+        return map;
+    }
+
     // Slots
 
     void MetaMode::modeDisconnected() {
         unsetMode();
-        emit modeNoLongerAvailable();
+        emit availabilityChanged(false);
         m_is_available = std::make_optional<bool>(false);
     }
 
     void MetaMode::setPreferred(bool preferred) {
         m_preferred = std::make_optional<bool>(preferred);
-        emit propertyChanged(MetaModeProperty::Property::Preferred, QVariant::fromValue(preferred));
+        emit preferredChanged(preferred);
     }
 
     void MetaMode::setProperty(MetaModeProperty::Property property, const QVariant &value) {
@@ -106,6 +160,7 @@ namespace bd::Outputs::Wlr {
         switch (property) {
             case MetaModeProperty::Property::Preferred:
                 m_preferred = std::make_optional<bool>(value.toBool());
+                emit preferredChanged(m_preferred.value());
                 break;
             case MetaModeProperty::Property::Refresh:
                 m_refresh = static_cast<qulonglong>(value.toULongLong());
@@ -123,8 +178,6 @@ namespace bd::Outputs::Wlr {
         // If the property was not changed, do nothing
         if (!changed) return;
 
-        emit propertyChanged(property, value);
-
         auto refresh = getRefresh();
         auto size = getSize();
 
@@ -132,13 +185,16 @@ namespace bd::Outputs::Wlr {
         if (!size.has_value()) return;
         if (!size.value().isValid()) return;
 
+        emit refreshRateChanged(refresh.value());
+        emit sizeChanged(size.value());
+
         // Compute ID string as {width}_{height}_{refresh} and ensure it's DBus object-path safe
         const auto sz = size.value();
         const auto ref = refresh.value();
         m_id = QString("%1_%2_%3").arg(sz.width()).arg(sz.height()).arg(ref);
-        // no decimal in integer refresh
 
-        m_is_available = true;
+        m_is_available = std::make_optional<bool>(true);
+        emit availabilityChanged(true);
         emit done();
     }
 }

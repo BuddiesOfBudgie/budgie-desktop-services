@@ -20,7 +20,7 @@ namespace bd::Outputs::Wlr {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.Output")
     Q_PROPERTY(uint AdaptiveSync READ AdaptiveSync NOTIFY adaptiveSyncChanged)
-    Q_PROPERTY(KvMap CurrentMode READ CurrentMode NOTIFY currentModeChanged)
+    Q_PROPERTY(QVariantMap CurrentMode READ CurrentMode NOTIFY currentModeChanged)
     Q_PROPERTY(QString Description READ Description NOTIFY descriptionChanged)
     Q_PROPERTY(bool Enabled READ Enabled NOTIFY enabledChanged)
     Q_PROPERTY(int Height READ Height NOTIFY heightChanged)
@@ -57,7 +57,7 @@ namespace bd::Outputs::Wlr {
         QList<QSharedPointer<bd::Outputs::Wlr::MetaMode>> getModes();
 
         uint AdaptiveSync() const;
-        KvMap CurrentMode() const;
+        QVariantMap CurrentMode() const;
         QString Description() const;
         bool Enabled() const;
         int Height() const;
@@ -113,7 +113,7 @@ namespace bd::Outputs::Wlr {
         void headNoLongerAvailable();
 
         void adaptiveSyncChanged(uint adaptiveSync);
-        void currentModeChanged(const KvMap &currentMode);
+        void currentModeChanged(const QVariantMap &currentMode);
         void descriptionChanged(const QString &description);
         void enabledChanged(bool enabled);
         void heightChanged(int height);

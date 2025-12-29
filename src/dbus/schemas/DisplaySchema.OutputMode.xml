@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node name="/org/buddiesofbudgie/Services/Outputs/Output/Modes/Mode">
     <interface name="org.buddiesofbudgie.Services.OutputMode">
-        <property name="Width" type="i" access="read"/>
-        <property name="Height" type="i" access="read"/>
-        <property name="RefreshRate" type="t" access="read"/>
-        <property name="Preferred" type="b" access="read"/>
+        <property name="Available" type="b" access="read"/>
         <property name="Current" type="b" access="read"/>
-        <method name="GetModeInfo">
-            <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
-            <arg name="modeInfo" type="a{sv}" direction="out"/>
-        </method>
-        <signal name="PropertyChanged">
-            <arg name="property" type="s"/>
-            <arg name="value" type="v"/>
+        <property name="Height" type="i" access="read"/>
+        <property name="Id" type="s" access="read"/>
+        <property name="Preferred" type="b" access="read"/>
+        <property name="RefreshRate" type="t" access="read"/>
+        <property name="Width" type="i" access="read"/>
+        <signal name="availabilityChanged">
+            <arg name="available" type="b"/>
         </signal>
-        <signal name="Activated">
+        <signal name="preferredChanged">
+            <arg name="preferred" type="b"/>
+        </signal>
+        <signal name="refreshRateChanged">
+            <arg name="refreshRate" type="t"/>
+        </signal>
+        <signal name="sizeChanged">
+            <arg name="size" type="a{sv}"/>
+            <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+        </signal>
+        <signal name="done">
             <arg name="success" type="b"/>
         </signal>
     </interface>

@@ -5,17 +5,16 @@
 
 #include "config/display.hpp"
 #include "dbus/ConfigService.hpp"
-#include "dbus/OutputModeService.hpp"
 #include "dbus/OutputsService.hpp"
 #include "outputs/configuration.hpp"
 #include "outputs/state.hpp"
 #include "outputs/types.hpp"
 #include "outputs/wlr/metahead.hpp"
+#include "outputs/wlr/metamode.hpp"
 
 int main(int argc, char* argv[]) {
   QCoreApplication app(argc, argv);
-  // Register meta types for individual mode and modes info used in output
-  qDBusRegisterMetaType<bd::Outputs::KvMap>();
+  // Register meta types
   qDBusRegisterMetaType<bd::Outputs::NestedKvMap>();
 
   qSetMessagePattern("[%{type}] %{if-debug}[%{file}:%{line} %{function}]%{endif}%{message}");
@@ -42,7 +41,7 @@ int main(int argc, char* argv[]) {
     qInfo() << "Starting Display DBus Service now (outputs/modes)";
 
     QMap<QString, bd::Outputs::Wlr::MetaHead*> m_outputServices;
-    QMap<QString, bd::OutputModeService*>      m_modeServices;
+    QMap<QString, bd::Outputs::Wlr::MetaMode*> m_modeServices;
 
     auto manager = bd::Outputs::State::instance().getManager();
 
@@ -68,12 +67,12 @@ int main(int argc, char* argv[]) {
       for (const auto& mode : output->getModes()) {
         if (!mode) continue;
 
-        QString modeKey = outputId + ":" + mode->getId();
+        QString modeKey = outputId + ":" + mode->Id();
 
         if (m_modeServices.contains(modeKey)) continue;
 
-        auto* modeService       = new bd::OutputModeService(mode, outputId);
-        m_modeServices[modeKey] = modeService;
+        mode->registerDbusService();
+        m_modeServices[modeKey] = mode.data();
       }
     }
   });
