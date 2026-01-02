@@ -74,6 +74,7 @@ namespace bd::Outputs::Wlr {
         QString relativeTo() const;
         double scale() const;
         QString serial() const;
+        // Maps to wl_output transform enum. See https://wayland.app/protocols/wayland#wl_output:enum:transform
         quint16 transform() const;
         int width() const;
         int x() const;
