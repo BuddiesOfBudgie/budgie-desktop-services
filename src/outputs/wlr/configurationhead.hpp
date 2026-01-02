@@ -18,7 +18,7 @@ namespace bd::Outputs::Wlr {
         void                   setMode(bd::Outputs::Wlr::MetaMode* mode);
         void                   setCustomMode(int32_t width, int32_t height, qulonglong refresh);
         void                   setPosition(int32_t x, int32_t y);
-        void                   setTransform(quint8 transform);
+        void                   setTransform(quint16 transform);
         void                   setScale(double scale);
   
       private:

@@ -40,7 +40,7 @@ namespace bd::Outputs::Wlr {
       set_scale(wl_fixed_from_double(scale));
     }
   
-    void ConfigurationHead::setTransform(quint8 transform) {
+    void ConfigurationHead::setTransform(quint16 transform) {
       set_transform(static_cast<int32_t>(transform));
     }
 }

@@ -31,7 +31,7 @@ namespace bd::Outputs::Wlr {
   }
 
   void Head::zwlr_output_head_v1_mode(::zwlr_output_mode_v1* mode) {
-    qDebug() << "Head mode changed to: " << mode;
+    qDebug() << "Head mode added: " << mode;
     emit modeAdded(mode);
   }
 
@@ -41,10 +41,12 @@ namespace bd::Outputs::Wlr {
   }
 
   void Head::zwlr_output_head_v1_current_mode(::zwlr_output_mode_v1* mode) {
+    qDebug() << "Head current mode changed to: " << mode;
     emit modeChanged(mode);
   }
 
   void Head::zwlr_output_head_v1_finished() {
+    qDebug() << "Head finished";
     emit headFinished();
   }
 

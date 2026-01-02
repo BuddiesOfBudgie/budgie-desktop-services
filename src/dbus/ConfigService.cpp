@@ -34,7 +34,7 @@ namespace bd {
   ConfigService::SetOutputPositionAnchor(const QString& serial, const QString& relativeSerial, const QString& horizontalAnchor, const QString& verticalAnchor) {
     auto hAnchor = bd::Outputs::Config::HorizontalAnchor::fromString(horizontalAnchor);
     auto vAnchor = bd::Outputs::Config::VerticalAnchor::fromString(verticalAnchor);
-    auto action  = bd::Outputs::Config::Action::setPositionAnchor(serial, relativeSerial, hAnchor, vAnchor);
+    auto action  = bd::Outputs::Config::Action::positionAnchor(serial, relativeSerial, hAnchor, vAnchor);
     bd::Outputs::Config::Model::instance().addAction(action);
   }
 
@@ -43,8 +43,8 @@ namespace bd {
     bd::Outputs::Config::Model::instance().addAction(action);
   }
 
-  void ConfigService::SetOutputTransform(const QString& serial, quint8 transform) {
-    auto action = bd::Outputs::Config::Action::transform(serial, static_cast<quint8>(transform));
+  void ConfigService::SetOutputTransform(const QString& serial, quint16 transform) {
+    auto action = bd::Outputs::Config::Action::transform(serial, static_cast<quint16>(transform));
     bd::Outputs::Config::Model::instance().addAction(action);
   }
 

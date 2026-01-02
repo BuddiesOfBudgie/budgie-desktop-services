@@ -3,8 +3,9 @@
 #include <QStringList>
 #include <QDebug>
 
-#include "config/display.hpp"
+#include "config/outputs/state.hpp"
 #include "outputs/state.hpp"
+#include "sys/SysInfo.hpp"
 #include "model.hpp"
 
 namespace bd::Outputs::Config {
@@ -35,6 +36,16 @@ namespace bd::Outputs::Config {
         if (action->getActionType() == ActionType::Type::SetPrimary) {
             for (auto action : m_actions) {
                 if (action->getActionType() == ActionType::SetPrimary) {
+                    m_actions.removeOne(action);
+                    break;
+                }
+            }
+        }
+
+        // If the action is to set the absolute position, remove any relative positioning actions
+        if (action->getActionType() == ActionType::Type::SetAbsolutePosition) {
+            for (auto action : m_actions) {
+                if (action->getActionType() == ActionType::SetPositionAnchor) {
                     m_actions.removeOne(action);
                     break;
                 }
@@ -147,7 +158,9 @@ namespace bd::Outputs::Config {
                     qDebug() << "Setting mode for output" << serial << "Dimensions:" << dimensions << "Refresh:" << refresh;
                     // Try to find an existing mode that matches
                     auto mode = head->getModeForOutputHead(dimensions.width(), dimensions.height(), refresh);
-                    if (!mode.isNull()) {
+
+                    // If the head is not built-in and we found an existing mode matching these dimensions
+                    if (!head->builtIn() && !mode.isNull()) {
                         qDebug() << "Found existing mode for output" << serial << "Setting mode";
                         configHead->setMode(mode.data());
                     } else {
@@ -173,27 +186,9 @@ namespace bd::Outputs::Config {
             qDebug() << "Configuration applied successfully";
             
             // Update and save the configuration
-            auto& displayConfig = bd::DisplayConfig::instance();
+            auto& outputConfigState = bd::Config::Outputs::State::instance();
             
-            // Force creation of a new active group from the current state and save it
-            auto activeGroup = displayConfig.getActiveGroup();
-            if (activeGroup) {
-                // After success, update primary in meta heads based on group's primary
-                auto &orchestrator = bd::Outputs::State::instance();
-                auto manager = orchestrator.getManager();
-                auto heads = manager->getHeads();
-                auto primary = activeGroup->getPrimaryOutput();
-                if (!primary.isEmpty()) {
-                    for (const auto &head : heads) {
-                        if (head.isNull()) continue;
-                        head->setPrimary(head->getIdentifier() == primary);
-                    }
-                }
-                displayConfig.saveState();
-                qDebug() << "Configuration saved to disk";
-            } else {
-                qWarning() << "Failed to get active group for saving configuration";
-            }
+            outputConfigState.save();
             
             emit configurationApplied(true);
             config->release();
@@ -253,6 +248,8 @@ namespace bd::Outputs::Config {
             auto outputState = pendingOutputStates[serial];
             if (outputState.isNull()) continue;
 
+            qDebug() << "Applying actions for output" << serial;
+
             for (auto action : actions) {
                 switch (action->getActionType()) {
                     case ActionType::SetOnOff:
@@ -282,6 +279,9 @@ namespace bd::Outputs::Config {
                     case ActionType::SetMirrorOf:
                         outputState->setMirrorOf(action->getRelative());
                         break;
+                    case ActionType::SetAbsolutePosition:
+                        outputState->setPosition(action->getAbsolutePosition());
+                        break;
                     default:
                         break;
                 }
@@ -295,80 +295,83 @@ namespace bd::Outputs::Config {
             }
         }
 
-        // Identify mirroring relationships - mirrored outputs only share position, not configuration
-        auto mirrorActions = QMap<QString, QString>(); // serial -> mirrored_serial
-        for (auto action : m_actions) {
-            if (action->getActionType() == ActionType::SetMirrorOf) {
-                mirrorActions.insert(action->getSerial(), action->getRelative());
+        // Not in shim mode, need to calculate positions, anchors, mirroring, etc. ourselves
+        if (!SysInfo::instance().isShimMode()) {
+            // Identify mirroring relationships - mirrored outputs only share position, not configuration
+            auto mirrorActions = QMap<QString, QString>(); // serial -> mirrored_serial
+            for (auto action : m_actions) {
+                if (action->getActionType() == ActionType::SetMirrorOf) {
+                    mirrorActions.insert(action->getSerial(), action->getRelative());
+                }
             }
-        }
 
-        // Build anchor relationships
-        auto anchorMap = QMap<QString, QString>(); // serial -> relative_serial
-        auto unanchoredOutputs = QList<QString>();
+            // Build anchor relationships
+            auto anchorMap = QMap<QString, QString>(); // serial -> relative_serial
+            auto unanchoredOutputs = QList<QString>();
 
-        for (auto action : m_actions) {
-            if (action->getActionType() == ActionType::SetPositionAnchor) {
-                anchorMap.insert(action->getSerial(), action->getRelative());
+            for (auto action : m_actions) {
+                if (action->getActionType() == ActionType::SetPositionAnchor) {
+                    anchorMap.insert(action->getSerial(), action->getRelative());
+                }
             }
-        }
 
-        for (auto serial : pendingOutputStates.keys()) {
-            auto outputState = pendingOutputStates[serial];
-            if (!outputState.isNull() && outputState->isOn() && !anchorMap.contains(serial)) {
-                unanchoredOutputs.append(serial);
-            }
-        }
-
-        // Build horizontal chain for positioning
-        QList<QString> horizontalChain = buildHorizontalChain(pendingOutputStates, m_actions);
-        qDebug() << "Horizontal output chain order:" << horizontalChain;
-
-        // Position outputs in horizontal chain from left to right
-        auto positionedOutputs = QSet<QString>();
-        QPoint nextPosition(0, 0);
-        for (const auto& serial : horizontalChain) {
-            auto outputState = pendingOutputStates[serial];
-            // If the output is enabled and not mirroring, position it in the chain
-            if (!outputState.isNull() && outputState->isOn() && !outputState->isMirroring()) {
-                outputState->setPosition(nextPosition);
-                positionedOutputs.insert(serial);
-                // Move next position to the right
-                auto dimensions = outputState->getResultingDimensions();
-                nextPosition.setX(nextPosition.x() + dimensions.width());
-            }
-        }
-
-        // Position anchored outputs iteratively (vertical and other anchors)
-        bool progressMade = true;
-        while (progressMade && positionedOutputs.size() < pendingOutputStates.size()) {
-            progressMade = false;
-            for (auto serial : anchorMap.keys()) {
-                if (positionedOutputs.contains(serial)) continue;
-                auto relativeSerial = anchorMap[serial];
-                if (!positionedOutputs.contains(relativeSerial)) continue;
+            for (auto serial : pendingOutputStates.keys()) {
                 auto outputState = pendingOutputStates[serial];
-                auto relativeState = pendingOutputStates[relativeSerial];
-                if (outputState.isNull() || relativeState.isNull() || !outputState->isOn() || outputState->isMirroring()) continue;
-                // Calculate position based on anchor (mirrored outputs will be handled separately)
-                QPoint newPosition = calculateAnchoredPosition(outputState, relativeState);
-                outputState->setPosition(newPosition);
-                positionedOutputs.insert(serial);
-                progressMade = true;
+                if (!outputState.isNull() && outputState->isOn() && !anchorMap.contains(serial)) {
+                    unanchoredOutputs.append(serial);
+                }
             }
-        }
-        // Position mirrored outputs
-        for (auto serial : mirrorActions.keys()) {
-            auto mirroredSerial = mirrorActions[serial];
-            auto outputState = pendingOutputStates[serial];
-            auto mirroredState = pendingOutputStates[mirroredSerial];
-            
-            if (!outputState.isNull() && !mirroredState.isNull() && outputState->isOn() && outputState->isMirroring()) {
-                // Only inherit position if this output has no explicit anchoring and hasn't been positioned yet
-                if (!positionedOutputs.contains(serial) && !anchorMap.contains(serial)) {
-                    QPoint newPosition = calculateAnchoredPosition(outputState, mirroredState);
+
+            // Build horizontal chain for positioning
+            QList<QString> horizontalChain = buildHorizontalChain(pendingOutputStates, m_actions);
+            qDebug() << "Horizontal output chain order:" << horizontalChain;
+
+            // Position outputs in horizontal chain from left to right
+            auto positionedOutputs = QSet<QString>();
+            QPoint nextPosition(0, 0);
+            for (const auto& serial : horizontalChain) {
+                auto outputState = pendingOutputStates[serial];
+                // If the output is enabled and not mirroring, position it in the chain
+                if (!outputState.isNull() && outputState->isOn() && !outputState->isMirroring()) {
+                    outputState->setPosition(nextPosition);
+                    positionedOutputs.insert(serial);
+                    // Move next position to the right
+                    auto dimensions = outputState->getResultingDimensions();
+                    nextPosition.setX(nextPosition.x() + dimensions.width());
+                }
+            }
+
+            // Position anchored outputs iteratively (vertical and other anchors)
+            bool progressMade = true;
+            while (progressMade && positionedOutputs.size() < pendingOutputStates.size()) {
+                progressMade = false;
+                for (auto serial : anchorMap.keys()) {
+                    if (positionedOutputs.contains(serial)) continue;
+                    auto relativeSerial = anchorMap[serial];
+                    if (!positionedOutputs.contains(relativeSerial)) continue;
+                    auto outputState = pendingOutputStates[serial];
+                    auto relativeState = pendingOutputStates[relativeSerial];
+                    if (outputState.isNull() || relativeState.isNull() || !outputState->isOn() || outputState->isMirroring()) continue;
+                    // Calculate position based on anchor (mirrored outputs will be handled separately)
+                    QPoint newPosition = calculateAnchoredPosition(outputState, relativeState);
                     outputState->setPosition(newPosition);
                     positionedOutputs.insert(serial);
+                    progressMade = true;
+                }
+            }
+            // Position mirrored outputs
+            for (auto serial : mirrorActions.keys()) {
+                auto mirroredSerial = mirrorActions[serial];
+                auto outputState = pendingOutputStates[serial];
+                auto mirroredState = pendingOutputStates[mirroredSerial];
+                
+                if (!outputState.isNull() && !mirroredState.isNull() && outputState->isOn() && outputState->isMirroring()) {
+                    // Only inherit position if this output has no explicit anchoring and hasn't been positioned yet
+                    if (!positionedOutputs.contains(serial) && !anchorMap.contains(serial)) {
+                        QPoint newPosition = calculateAnchoredPosition(outputState, mirroredState);
+                        outputState->setPosition(newPosition);
+                        positionedOutputs.insert(serial);
+                    }
                 }
             }
         }
@@ -393,10 +396,10 @@ namespace bd::Outputs::Config {
         }
 
         // Store results
-        m_calculation_result->getOutputStates().clear();
+        m_calculation_result->getOutputStates().clear(); // Clear existing output states
         for (auto serial : pendingOutputStates.keys()) {
             auto outputState = pendingOutputStates[serial];
-            m_calculation_result->setOutputState(serial, outputState);
+            m_calculation_result->setOutputState(serial, outputState); // Set the new output state for the given serial
         }
 
         // Update global space

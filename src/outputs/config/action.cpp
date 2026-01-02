@@ -1,6 +1,5 @@
 #include "action.hpp"
 #include <qdebug.h>
-#include "utils.hpp"
 
 namespace bd::Outputs::Config {
     Action::Action(ActionType::Type action_type, QString serial, QObject *parent) : QObject(parent), m_action_type(action_type), m_serial(QString {serial}),
@@ -35,9 +34,16 @@ namespace bd::Outputs::Config {
         return action;
     }
 
-    QSharedPointer<Action> Action::setPositionAnchor(const QString& serial, QString relative, bd::Outputs::Config::HorizontalAnchor::Type horizontal,
+    QSharedPointer<Action> Action::absolutePosition(const QString& serial, QPoint position, QObject *parent) {
+        qDebug() << "Action::setAbsolutePosition" << serial << position;
+        auto action = QSharedPointer<Action>(new Action(ActionType::Type::SetAbsolutePosition, serial, parent));
+        action->m_absolute_position = position;
+        return action;
+    }
+
+    QSharedPointer<Action> Action::positionAnchor(const QString& serial, QString relative, bd::Outputs::Config::HorizontalAnchor::Type horizontal,
                                                                                  bd::Outputs::Config::VerticalAnchor::Type vertical, QObject *parent) {
-        qDebug() << "Action::setPositionAnchor" << serial << relative << bd::Outputs::Config::HorizontalAnchor::toString(horizontal) << bd::Outputs::Config::VerticalAnchor::toString(vertical);
+        qDebug() << "Action::positionAnchor" << serial << relative << bd::Outputs::Config::HorizontalAnchor::toString(horizontal) << bd::Outputs::Config::VerticalAnchor::toString(vertical);
         auto action = QSharedPointer<Action>(new Action(ActionType::SetPositionAnchor, serial, parent));
         action->m_relative = QString { relative };
         action->m_horizontal_anchor = horizontal;
@@ -52,7 +58,7 @@ namespace bd::Outputs::Config {
         return action;
     }
 
-    QSharedPointer<Action> Action::transform(const QString& serial, quint8 transform, QObject *parent) {
+    QSharedPointer<Action> Action::transform(const QString& serial, quint16 transform, QObject *parent) {
         qDebug() << "Action::transform" << serial << transform;
         auto action = QSharedPointer<Action>(new Action(ActionType::SetTransform, serial, parent));
         action->m_transform = transform;
@@ -101,6 +107,10 @@ namespace bd::Outputs::Config {
         return m_refresh;
     }
 
+    QPoint Action::getAbsolutePosition() const {
+        return m_absolute_position;
+    }
+
     HorizontalAnchor::Type Action::getHorizontalAnchor() const {
         return m_horizontal_anchor;
     }
@@ -113,7 +123,7 @@ namespace bd::Outputs::Config {
         return m_scale;
     }
 
-    quint8 Action::getTransform() const {
+    quint16 Action::getTransform() const {
         return m_transform;
     }
 

@@ -20,7 +20,7 @@ namespace bd {
       void        SetOutputMode(const QString& serial, int width, int height, qulonglong refreshRate);
       void        SetOutputPositionAnchor(const QString& serial, const QString& relativeSerial, const QString& horizontalAnchor, const QString& verticalAnchor);
       void        SetOutputScale(const QString& serial, double scale);
-      void        SetOutputTransform(const QString& serial, quint8 transform);
+      void        SetOutputTransform(const QString& serial, quint16 transform);
       void        SetOutputAdaptiveSync(const QString& serial, uint adaptiveSync);
       void        SetOutputPrimary(const QString& serial);
       void        SetOutputMirrorOf(const QString& serial, const QString& mirrorSerial);

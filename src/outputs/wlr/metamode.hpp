@@ -9,33 +9,34 @@
 
 #include "mode.hpp"
 #include "enums.hpp"
+#include "outputs/types.hpp"
 
 namespace bd::Outputs::Wlr {
     class MetaMode : public QObject, protected QDBusContext {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.OutputMode")
-    Q_PROPERTY(bool Available READ Available)
-    Q_PROPERTY(bool Current READ Current)
-    Q_PROPERTY(int Height READ Height)
-    Q_PROPERTY(QString Id READ Id)
-    Q_PROPERTY(bool Preferred READ Preferred)
-    Q_PROPERTY(qulonglong RefreshRate READ RefreshRate)
-    Q_PROPERTY(int Width READ Width)
+    Q_PROPERTY(bool available READ available)
+    Q_PROPERTY(bool current READ current)
+    Q_PROPERTY(int height READ height)
+    Q_PROPERTY(QString id READ id)
+    Q_PROPERTY(bool preferred READ preferred)
+    Q_PROPERTY(qulonglong refreshRate READ refreshRate)
+    Q_PROPERTY(int width READ width)
 
     public:
         MetaMode(QObject *parent, ::zwlr_output_mode_v1 *wlr_mode);
         ~MetaMode() override;
 
         // Property getters
-        bool Available() const;
-        bool Current() const;
-        int Height() const;
-        QString Id() const;
-        bool Preferred() const;
-        qulonglong RefreshRate() const;
-        int Width() const;
+        bool available() const;
+        bool current() const;
+        int height() const;
+        QString id() const;
+        bool preferred() const;
+        qulonglong refreshRate() const;
+        int width() const;
 
-        QVariantMap toDBusVariantMap() const;
+        bd::Outputs::OutputModeInfo toDBusStruct() const;
 
         std::optional<qulonglong> getRefresh();
 

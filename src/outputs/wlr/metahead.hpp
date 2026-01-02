@@ -19,30 +19,31 @@ namespace bd::Outputs::Wlr {
     class MetaHead : public QObject, protected QDBusContext {
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.buddiesofbudgie.Services.Output")
-    Q_PROPERTY(uint AdaptiveSync READ AdaptiveSync NOTIFY adaptiveSyncChanged)
-    Q_PROPERTY(QVariantMap CurrentMode READ CurrentMode NOTIFY currentModeChanged)
-    Q_PROPERTY(QString Description READ Description NOTIFY descriptionChanged)
-    Q_PROPERTY(bool Enabled READ Enabled NOTIFY enabledChanged)
-    Q_PROPERTY(int Height READ Height NOTIFY heightChanged)
-    Q_PROPERTY(QString HorizontalAnchor READ HorizontalAnchor NOTIFY horizontalAnchorChanged)
-    Q_PROPERTY(QString Make READ Make NOTIFY makeChanged)
-    Q_PROPERTY(NestedKvMap Modes READ Modes NOTIFY modesChanged)
-    Q_PROPERTY(QString MirrorOf READ MirrorOf NOTIFY mirrorOfChanged)
-    Q_PROPERTY(QString Model READ Model NOTIFY modelChanged)
-    Q_PROPERTY(QString Name READ Name NOTIFY nameChanged)
-    Q_PROPERTY(bool Primary READ Primary NOTIFY primaryChanged)
-    Q_PROPERTY(qulonglong RefreshRate READ RefreshRate NOTIFY refreshRateChanged)
-    Q_PROPERTY(QString RelativeTo READ RelativeTo NOTIFY relativeToChanged)
-    Q_PROPERTY(double Scale READ Scale NOTIFY scaleChanged)
-    Q_PROPERTY(QString Serial READ Serial NOTIFY serialChanged)
-    Q_PROPERTY(quint8 Transform READ Transform NOTIFY transformChanged)
-    Q_PROPERTY(QString VerticalAnchor READ VerticalAnchor NOTIFY verticalAnchorChanged)
-    Q_PROPERTY(int Width READ Width NOTIFY widthChanged)
-    Q_PROPERTY(int X READ X NOTIFY xChanged)
-    Q_PROPERTY(int Y READ Y NOTIFY yChanged)
+    Q_PROPERTY(uint adaptiveSync READ adaptiveSync NOTIFY adaptiveSyncChanged)
+    Q_PROPERTY(bool builtIn READ builtIn)
+    Q_PROPERTY(bd::Outputs::OutputModeInfo currentMode READ currentMode NOTIFY currentModeChanged)
+    Q_PROPERTY(QString description READ description NOTIFY descriptionChanged)
+    Q_PROPERTY(bool enabled READ enabled NOTIFY enabledChanged)
+    Q_PROPERTY(int height READ height NOTIFY heightChanged)
+    Q_PROPERTY(QString horizontalAnchor READ horizontalAnchor NOTIFY horizontalAnchorChanged)
+    Q_PROPERTY(QString make READ make NOTIFY makeChanged)
+    Q_PROPERTY(bd::Outputs::OutputModesMap modes READ modes NOTIFY modesChanged)
+    Q_PROPERTY(QString mirrorOf READ mirrorOf NOTIFY mirrorOfChanged)
+    Q_PROPERTY(QString model READ model NOTIFY modelChanged)
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
+    Q_PROPERTY(bool primary READ primary NOTIFY primaryChanged)
+    Q_PROPERTY(qulonglong refreshRate READ refreshRate NOTIFY refreshRateChanged)
+    Q_PROPERTY(QString relativeTo READ relativeTo NOTIFY relativeToChanged)
+    Q_PROPERTY(double scale READ scale NOTIFY scaleChanged)
+    Q_PROPERTY(QString serial READ serial NOTIFY serialChanged)
+    Q_PROPERTY(quint16 transform READ transform NOTIFY transformChanged)
+    Q_PROPERTY(QString verticalAnchor READ verticalAnchor NOTIFY verticalAnchorChanged)
+    Q_PROPERTY(int width READ width NOTIFY widthChanged)
+    Q_PROPERTY(int x READ x NOTIFY xChanged)
+    Q_PROPERTY(int y READ y NOTIFY yChanged)
 
     public:
-        MetaHead(QObject *parent, KWayland::Client::Registry *registry);
+        MetaHead(QObject *parent);
 
         ~MetaHead() override;
 
@@ -56,39 +57,39 @@ namespace bd::Outputs::Wlr {
 
         QList<QSharedPointer<bd::Outputs::Wlr::MetaMode>> getModes();
 
-        uint AdaptiveSync() const;
-        QVariantMap CurrentMode() const;
-        QString Description() const;
-        bool Enabled() const;
-        int Height() const;
-        QString HorizontalAnchor() const;
-        QString Make() const;
-        QString MirrorOf() const;
-        NestedKvMap Modes() const;
-        QString Model() const;
-        QString Name() const;
-        bool Primary() const;
-        qulonglong RefreshRate() const;
-        QString RelativeTo() const;
-        double Scale() const;
-        QString Serial() const;
-        quint8 Transform() const;
-        int Width() const;
-        int X() const;
-        int Y() const;
-        QString VerticalAnchor() const;
+        uint adaptiveSync() const;
+        bool builtIn();
+        bd::Outputs::OutputModeInfo currentMode() const;
+        QString description() const;
+        bool enabled() const;
+        int height() const;
+        QString horizontalAnchor() const;
+        QString make() const;
+        QString mirrorOf() const;
+        bd::Outputs::OutputModesMap modes() const;
+        QString model() const;
+        QString name() const;
+        bool primary() const;
+        qulonglong refreshRate() const;
+        QString relativeTo() const;
+        double scale() const;
+        QString serial() const;
+        quint16 transform() const;
+        int width() const;
+        int x() const;
+        int y() const;
+        QString verticalAnchor() const;
 
         // Internal getters (used by Q_PROPERTY getters or for special return types)
-        QString getIdentifier(); // Used by Serial() Q_PROPERTY getter
-        QPoint getPosition(); // Returns QPoint (X()/Y() return int)
+        QString getIdentifier(); // Used by serial() Q_PROPERTY getter
+        QPoint getPosition(); // Returns QPoint (x()/y() return int)
 
-        bd::Outputs::Config::HorizontalAnchor::Type getHorizontalAnchor() const; // Returns Type (HorizontalAnchor() returns QString)
-        bd::Outputs::Config::VerticalAnchor::Type getVerticalAnchor() const; // Returns Type (VerticalAnchor() returns QString)
+        bd::Outputs::Config::HorizontalAnchor::Type getHorizontalAnchor() const; // Returns Type (horizontalAnchor() returns QString)
+        bd::Outputs::Config::VerticalAnchor::Type getVerticalAnchor() const; // Returns Type (verticalAnchor() returns QString)
 
         std::optional<::zwlr_output_head_v1*> getWlrHead();
 
         bool isAvailable();
-        bool isBuiltIn();
 
         void setHead(::zwlr_output_head_v1 *head);
 
@@ -114,7 +115,7 @@ namespace bd::Outputs::Wlr {
         void stateChanged();
 
         void adaptiveSyncChanged(uint adaptiveSync);
-        void currentModeChanged(const QVariantMap &currentMode);
+        void currentModeChanged(const bd::Outputs::OutputModeInfo &currentMode);
         void descriptionChanged(const QString &description);
         void enabledChanged(bool enabled);
         void heightChanged(int height);
@@ -130,7 +131,7 @@ namespace bd::Outputs::Wlr {
         void relativeToChanged(const QString &relativeTo);
         void scaleChanged(double scale);
         void serialChanged(const QString &serial);
-        void transformChanged(quint8 transform);
+        void transformChanged(quint16 transform);
         void verticalAnchorChanged(const QString &verticalAnchor);
         void widthChanged(int width);
         void xChanged(int x);
@@ -162,6 +163,7 @@ namespace bd::Outputs::Wlr {
         qint16 m_transform;
         qreal m_scale;
 
+        bool m_built_in;
         bool m_is_available;
         bool m_enabled;
         QtWayland::zwlr_output_head_v1::adaptive_sync_state m_adaptive_sync;

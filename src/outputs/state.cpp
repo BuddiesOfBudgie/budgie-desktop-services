@@ -1,18 +1,26 @@
 #include "state.hpp"
 
+#include <KWayland/Client/connection_thread.h>
 #include <KWayland/Client/registry.h>
+// #include <KWayland/Client/output.h>
 
+#include <QCoreApplication>
 #include <QDBusConnection>
 #include <QMap>
+#include <QThread>
+#include <QTimer>
 #include <cstring>
 
+#include "config/outputs/state.hpp"
 #include "outputs/config/model.hpp"
 #include "outputs/wlr/metahead.hpp"
 #include "outputs/wlr/metamode.hpp"
+#include "sys/SysInfo.hpp"
 
 namespace bd::Outputs {
   State::State(QObject* parent)
       : QObject(parent),
+        m_connection(nullptr),
         m_registry(nullptr),
         m_display(nullptr),
         m_manager(nullptr),
@@ -29,23 +37,10 @@ namespace bd::Outputs {
   }
 
   void State::init() {
-    auto display = wl_display_connect(nullptr);
-    if (display == nullptr) {
-      emit orchestratorInitFailed(QString("Failed to connect to the Wayland display"));
-      return;
-    }
-
-    m_display = display;
+    m_connection = KWayland::Client::ConnectionThread::fromApplication();
 
     m_registry = new KWayland::Client::Registry();
-    m_registry->create(m_display);  // Create using our existing display connection
-
-    if (!m_registry->isValid()) {
-      wl_display_disconnect(m_display);
-      m_registry->release();
-      emit orchestratorInitFailed(QString("Failed to create our KWayland registry and manage it"));
-      return;
-    }
+    m_registry->create(m_connection);
 
     connect(m_registry, &KWayland::Client::Registry::interfaceAnnounced, this, [this](const QByteArray& interface, quint32 name, quint32 version) {
       if (std::strcmp(interface, QtWayland::zwlr_output_manager_v1::interface()->name) == 0) {
@@ -58,13 +53,6 @@ namespace bd::Outputs {
     });
 
     m_registry->setup();
-
-    if (wl_display_roundtrip(m_display) < 0) {
-      emit orchestratorInitFailed(QString("Failed to perform roundtrip on Wayland display"));
-      return;
-    }
-
-    wl_display_dispatch(m_display);
   }
 
   QSharedPointer<Wlr::OutputManager> State::getManager() {
@@ -72,11 +60,16 @@ namespace bd::Outputs {
   }
 
   wl_display* State::getDisplay() {
-    return m_display;
+    if (m_connection) { return m_connection->display(); }
+    return nullptr;
   }
 
   KWayland::Client::Registry* State::getRegistry() {
     return m_registry;
+  }
+
+  KWayland::Client::ConnectionThread* State::getConnection() {
+    return m_connection;
   }
 
   bool State::hasSerial() {
@@ -87,11 +80,11 @@ namespace bd::Outputs {
     return m_serial;
   }
 
-  QStringList State::AvailableOutputs() const {
+  QStringList State::availableOutputs() const {
     auto outputs = QStringList {};
     if (!m_manager) return outputs;
     for (const auto& output : m_manager->getHeads()) {
-      if (output) outputs.append(output->Serial());
+      if (output) outputs.append(output->serial());
     }
     return outputs;
   }
@@ -103,25 +96,25 @@ namespace bd::Outputs {
     if (heads.isEmpty()) return nullptr;
 
     for (const auto& head : heads) {
-      if (head && head->Primary()) return head;
+      if (head && head->primary()) return head;
     }
     return heads.first();
   }
 
-  QString State::PrimaryOutput() const {
+  QString State::primaryOutput() const {
     auto head = getPrimaryOrFirstHead();
     if (!head) return QString();
-    return head->Serial();
+    return head->serial();
   }
 
-  QVariantMap State::PrimaryOutputRect() const {
+  QVariantMap State::primaryOutputRect() const {
     QVariantMap rect;
     auto        head = getPrimaryOrFirstHead();
     if (!head) return rect;
 
     // Populate QRect-like map similar to GetModeInfo pattern
-    int  x    = head->X();
-    int  y    = head->Y();
+    int  x    = head->x();
+    int  y    = head->y();
     int  w    = 0;
     int  h    = 0;
     auto mode = head->getCurrentMode();
@@ -140,7 +133,7 @@ namespace bd::Outputs {
     return rect;
   }
 
-  QVariantMap State::GlobalRect() const {
+  QVariantMap State::globalRect() const {
     QVariantMap rect;
     auto        calculationResult = bd::Outputs::Config::Model::instance().getCalculationResult();
     if (!calculationResult) return rect;
@@ -249,6 +242,18 @@ namespace bd::Outputs {
       m_cached_global_rect = currentGlobalRect;
       emit globalRectChanged();
     }
+
+    // If we are in shim mode, save the state since a head has triggered a change
+    if (bd::SysInfo::instance().isShimMode()) {
+      // Update the output configs from the heads
+      auto activeGroup = bd::Config::Outputs::State::instance().activeGroup();
+      if (activeGroup) {
+        qDebug() << "Saving state since a head has triggered a change in shim mode";
+        for (const auto& output : activeGroup->outputConfigs()) { output->updateFromHead(); }
+        // Save the state
+        bd::Config::Outputs::State::instance().save();
+      }
+    }
   }
 
   void State::connectHeadSignals(QSharedPointer<Wlr::MetaHead> head) {
@@ -263,14 +268,14 @@ namespace bd::Outputs {
   }
 
   QString State::getCurrentPrimaryOutput() const {
-    return PrimaryOutput();
+    return primaryOutput();
   }
 
   QVariantMap State::getCurrentGlobalRect() const {
-    return GlobalRect();
+    return globalRect();
   }
 
   QVariantMap State::getCurrentPrimaryOutputRect() const {
-    return PrimaryOutputRect();
+    return primaryOutputRect();
   }
 }

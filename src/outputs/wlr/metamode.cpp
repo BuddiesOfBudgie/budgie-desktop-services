@@ -16,11 +16,11 @@ namespace bd::Outputs::Wlr {
         m_preferred = std::nullopt; // Clear preferred state
     }
 
-    bool MetaMode::Available() const {
+    bool MetaMode::available() const {
         return m_is_available.has_value() && m_is_available.value();
     }
 
-    bool MetaMode::Current() const {
+    bool MetaMode::current() const {
         auto head = qobject_cast<bd::Outputs::Wlr::MetaHead*>(parent());
         if (!head) return false;
         auto currentMode = head->getCurrentMode();
@@ -29,25 +29,25 @@ namespace bd::Outputs::Wlr {
         return currentMode.data() == this;
     }
 
-    int MetaMode::Height() const {
+    int MetaMode::height() const {
         auto size = m_size;
         if (size.isEmpty() || size.isNull()) return 0;
         return size.height();
     }
 
-    QString MetaMode::Id() const {
+    QString MetaMode::id() const {
         return m_id;
     }
 
-    bool MetaMode::Preferred() const {
+    bool MetaMode::preferred() const {
         return m_preferred.has_value() && m_preferred.value();
     }
 
-    qulonglong MetaMode::RefreshRate() const {
+    qulonglong MetaMode::refreshRate() const {
         return m_refresh;
     }
 
-    int MetaMode::Width() const {
+    int MetaMode::width() const {
         auto size = m_size;
         if (size.isEmpty() || size.isNull()) return 0;
         return size.width();
@@ -135,14 +135,14 @@ namespace bd::Outputs::Wlr {
         m_is_available = std::make_optional<bool>(false);
     }
 
-    QVariantMap MetaMode::toDBusVariantMap() const {
-        QVariantMap map;
-        map["Id"] = m_id;
-        map["Width"] = m_size.width();
-        map["Height"] = m_size.height();
-        map["RefreshRate"] = m_refresh;
-        map["Preferred"] = m_preferred.has_value() && m_preferred.value();
-        return map;
+    bd::Outputs::OutputModeInfo MetaMode::toDBusStruct() const {
+        bd::Outputs::OutputModeInfo info;
+        info.id = m_id;
+        info.width = m_size.width();
+        info.height = m_size.height();
+        info.refreshRate = m_refresh;
+        info.preferred = m_preferred.has_value() && m_preferred.value();
+        return info;
     }
 
     // Slots

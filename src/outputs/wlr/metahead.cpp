@@ -4,15 +4,16 @@
 #include <QDBusConnection>
 #include <QSize>
 
-#include "sys/SysInfo.hpp"
 #include "metahead.hpp"
 #include "head.hpp"
+#include "config/outputs/state.hpp"
 #include "outputs/config/enums/anchors.hpp"
+#include "sys/SysInfo.hpp"
 
 namespace bd::Outputs::Wlr {
-    MetaHead::MetaHead(QObject *parent, KWayland::Client::Registry *registry)
+    MetaHead::MetaHead(QObject *parent)
             : QObject(parent),
-              m_registry(registry),
+              m_built_in(true),
               m_current_mode(nullptr),
               m_head(nullptr),
               m_position(QPoint{0, 0}),
@@ -112,106 +113,114 @@ namespace bd::Outputs::Wlr {
         return m_is_available;
     }
 
-    bool MetaHead::isBuiltIn() {
+    bool MetaHead::builtIn() {
         // Generate identifier if necessary
         getIdentifier();
         // Return if identifier exists
-        return !m_identifier.isNull() && !m_identifier.isEmpty();
+        return m_serial.isNull() || m_serial.isEmpty();
     }
 
-    QVariantMap MetaHead::CurrentMode() const {
-        if (!m_current_mode) return QVariantMap();
-        return m_current_mode->toDBusVariantMap();
+    bd::Outputs::OutputModeInfo MetaHead::currentMode() const {
+        if (!m_current_mode) {
+            bd::Outputs::OutputModeInfo empty;
+            empty.id = QString();
+            empty.width = 0;
+            empty.height = 0;
+            empty.refreshRate = 0;
+            empty.preferred = false;
+            return empty;
+        }
+        return m_current_mode->toDBusStruct();
     }
 
-    NestedKvMap MetaHead::Modes() const {
-        NestedKvMap modes;
+    bd::Outputs::OutputModesMap MetaHead::modes() const {
+        bd::Outputs::OutputModesMap modes;
         for (const auto& mode_ptr: m_output_modes) {
             if (!mode_ptr) continue;
-            modes.insert(mode_ptr->Id(), mode_ptr->toDBusVariantMap());
+            modes.insert(mode_ptr->id(), mode_ptr->toDBusStruct());
         }
         return modes;
     }
 
-    QString MetaHead::Serial() const {
+    QString MetaHead::serial() const {
         return const_cast<MetaHead*>(this)->getIdentifier();
     }
 
-    QString MetaHead::Name() const {
+    QString MetaHead::name() const {
         return m_name;
     }
 
-    QString MetaHead::Description() const {
+    QString MetaHead::description() const {
         return m_description;
     }
 
-    QString MetaHead::Make() const {
+    QString MetaHead::make() const {
         return m_make;
     }
 
-    QString MetaHead::Model() const {
+    QString MetaHead::model() const {
         return m_model;
     }
 
-    bool MetaHead::Enabled() const {
+    bool MetaHead::enabled() const {
         return m_enabled;
     }
 
-    int MetaHead::Width() const {
+    int MetaHead::width() const {
         auto mode = m_current_mode;
         if (mode) return mode->getSize().value_or(QSize(0, 0)).width();
         return 0;
     }
 
-    int MetaHead::Height() const {
+    int MetaHead::height() const {
         auto mode = m_current_mode;
         if (mode) return mode->getSize().value_or(QSize(0, 0)).height();
         return 0;
     }
 
-    int MetaHead::X() const {
+    int MetaHead::x() const {
         return m_position.x();
     }
 
-    int MetaHead::Y() const {
+    int MetaHead::y() const {
         return m_position.y();
     }
 
-    double MetaHead::Scale() const {
+    double MetaHead::scale() const {
         return m_scale;
     }
 
-    qulonglong MetaHead::RefreshRate() const {
+    qulonglong MetaHead::refreshRate() const {
         auto mode = m_current_mode;
         if (mode) return static_cast<qulonglong>(mode->getRefresh().value_or(0.0));
         return 0;
     }
 
-    quint8 MetaHead::Transform() const {
-        return static_cast<quint8>(m_transform);
+    quint16 MetaHead::transform() const {
+        return static_cast<quint16>(m_transform);
     }
 
-    uint MetaHead::AdaptiveSync() const {
+    uint MetaHead::adaptiveSync() const {
         return static_cast<uint>(m_adaptive_sync);
     }
 
-    bool MetaHead::Primary() const {
+    bool MetaHead::primary() const {
         return m_primary;
     }
 
-    QString MetaHead::MirrorOf() const {
+    QString MetaHead::mirrorOf() const {
         return QString(); /* TODO: implement if available */
     }
 
-    QString MetaHead::HorizontalAnchor() const {
+    QString MetaHead::horizontalAnchor() const {
         return bd::Outputs::Config::HorizontalAnchor::toString(m_horizontal_anchor);
     }
 
-    QString MetaHead::VerticalAnchor() const {
+    QString MetaHead::verticalAnchor() const {
         return bd::Outputs::Config::VerticalAnchor::toString(m_vertical_anchor);
     }
 
-    QString MetaHead::RelativeTo() const {
+    QString MetaHead::relativeTo() const {
         return m_relative_output;
     }
 
@@ -270,7 +279,7 @@ namespace bd::Outputs::Wlr {
 
         connect(output_mode, &bd::Outputs::Wlr::MetaMode::done, this, [this, output_mode, shared_ptr]() {
             // Check if this already exists
-            qDebug() << "Done triggered for mode" << output_mode->Id() << "on head" << getIdentifier();
+            qDebug() << "Done triggered for mode" << output_mode->id() << "on head" << getIdentifier();
             auto found_matching_mode = false;
             auto matching_mode_is_current = false;
 
@@ -278,10 +287,10 @@ namespace bd::Outputs::Wlr {
             for (const auto &mode_ptr: m_output_modes) {
                 if (!mode_ptr) continue;
                 auto existing_mode = mode_ptr.data();
-                qDebug() << "Checking existing mode" << existing_mode->Id() << "for a match.";
+                qDebug() << "Checking existing mode" << existing_mode->id() << "for a match.";
                 // Already exists, delete the existing mode and add the new one
                 if (existing_mode->isSameAs(output_mode)) {
-                    qDebug() << "Found an output mode (ID: " << existing_mode->Id() << ") that matches one we already have, deleting the old one.";
+                    qDebug() << "Found an output mode (ID: " << existing_mode->id() << ") that matches one we already have, deleting the old one.";
                     found_matching_mode = true;
                     m_output_modes.removeOne(mode_ptr);
 
@@ -292,7 +301,7 @@ namespace bd::Outputs::Wlr {
             }
 
             // Doesn't already exist, add it
-            qDebug() << "Adding new output mode (ID: " << output_mode->Id() << ") to head: " << getIdentifier() << " with size: "
+            qDebug() << "Adding new output mode (ID: " << output_mode->id() << ") to head: " << getIdentifier() << " with size: "
                      << output_mode->getSize().value_or(QSize(0, 0))
                      << " and refresh: " << static_cast<qulonglong>(output_mode->getRefresh().value_or(0));
 
@@ -303,7 +312,7 @@ namespace bd::Outputs::Wlr {
             if (found_matching_mode && matching_mode_is_current) {
                 qDebug() << "The old matching mode was the current mode, setting the current mode to the new one.";
                 m_current_mode = shared_ptr;
-                emit currentModeChanged(CurrentMode());
+                emit currentModeChanged(currentMode());
             }
 
             emit stateChanged();
@@ -342,30 +351,11 @@ namespace bd::Outputs::Wlr {
                 emit widthChanged(outputModeSize.width());
                 emit heightChanged(outputModeSize.height());
                 emit refreshRateChanged(refresh);
-                emit currentModeChanged(CurrentMode());
+                emit currentModeChanged(currentMode());
                 emit stateChanged();
                 return;
             }
         }
-
-//        auto meta_mode_ptr = addMode(mode); // Add the mode to the list of modes. If it already exists then we'll assign it to an existing Mode
-//        if (meta_mode_ptr.isNull()) {
-//            qWarning() << "Failed to add mode, meta_mode_ptr is null.";
-//            return;
-//        }
-//        auto meta_mode = meta_mode_ptr.data();
-//        if (meta_mode->isAvailable().value()) {
-//            qDebug() << "(Mode already available) Current mode set to:" << meta_mode->getSize().value_or(QSize(0, 0))
-//                     << "with refresh:" << meta_mode->getRefresh().value_or(0);
-//            m_current_mode = meta_mode_ptr; // Set the current mode already since it is available
-//        } else { // Not available yet
-//            connect(meta_mode, &WaylandOutputMetaMode::done, this, [this, meta_mode_ptr, meta_mode]() {
-//                // Set the current mode to the one that was just added
-//                qDebug() << "(Mode done) Current mode set to:" << meta_mode->getSize().value_or(QSize(0, 0))
-//                         << "with refresh:" << meta_mode->getRefresh().value_or(0);
-//                m_current_mode = meta_mode_ptr;
-//            });
-//        }
     }
 
     void MetaHead::headDisconnected() {
@@ -442,6 +432,11 @@ namespace bd::Outputs::Wlr {
 
         // If the property was not changed, do nothing
         if (!changed) return;
+
+        // If we are in shim mode, immediately save the state whenever the head changes
+        if (SysInfo::instance().isShimMode()) {
+            bd::Config::Outputs::State::instance().save();
+        }
     }
 
     // Anchoring/relative configuration accessors

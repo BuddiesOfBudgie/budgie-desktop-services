@@ -1,5 +1,4 @@
 #include "targetstate.hpp"
-#include "utils.hpp"
 
 namespace bd::Outputs::Config {
     TargetState::TargetState(QString serial, QObject *parent) : QObject(parent),
@@ -51,7 +50,7 @@ namespace bd::Outputs::Config {
         return m_scale;
     }
 
-    quint8 TargetState::getTransform() const {
+    quint16 TargetState::getTransform() const {
         return m_transform;
     }
 
@@ -67,7 +66,7 @@ namespace bd::Outputs::Config {
         if (head.isNull()) return;
         qDebug() << "TargetState::setDefaultValues" << m_serial;
         auto headData = head.data();
-        m_on = headData->Enabled();
+        m_on = headData->enabled();
 
         auto modePtr = headData->getCurrentMode();
         if (!modePtr.isNull()) {
@@ -89,18 +88,18 @@ namespace bd::Outputs::Config {
         auto position = headData->getPosition();
         m_position = QPoint(position);
         qDebug() << "position" << m_position;
-        m_scale = headData->Scale();
+        m_scale = headData->scale();
 
-        m_transform = headData->Transform();
+        m_transform = headData->transform();
 
         auto adaptiveSync = headData->getAdaptiveSync();
         m_adaptive_sync = static_cast<uint32_t>(adaptiveSync);
 
         // Default anchoring from meta head if present (user or config provided)
-        m_relative = headData->RelativeTo();
+        m_relative = headData->relativeTo();
         m_horizontal_anchor = headData->getHorizontalAnchor();
         m_vertical_anchor = headData->getVerticalAnchor();
-        m_primary = headData->Primary();
+        m_primary = headData->primary();
 
         qDebug() << "horizontalAnchor" << bd::Outputs::Config::HorizontalAnchor::toString(m_horizontal_anchor) << "\n" << "verticalAnchor" << bd::Outputs::Config::VerticalAnchor::toString(m_vertical_anchor) << "\n" << "primary" << m_primary;
     }
@@ -169,7 +168,7 @@ namespace bd::Outputs::Config {
         m_scale = scale;
     }
 
-    void TargetState::setTransform(quint8 transform) {
+    void TargetState::setTransform(quint16 transform) {
         qDebug() << "TargetState::setTransform" << m_serial << transform;
         m_transform = transform;
     }

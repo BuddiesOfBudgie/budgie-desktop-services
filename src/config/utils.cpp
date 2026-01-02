@@ -24,32 +24,3 @@ fs::path bd::ConfigUtils::getConfigPath(const std::string& config_name) {
   path /= config_name;
   return path;
 }
-
-DisplayRelativePosition bd::DisplayConfigurationUtils::getDisplayRelativePositionFromString(std::string_view& str) {
-  if (str == "left") {
-    return DisplayRelativePosition::left;
-  } else if (str == "right") {
-    return DisplayRelativePosition::right;
-  } else if (str == "above") {
-    return DisplayRelativePosition::above;
-  } else if (str == "below") {
-    return DisplayRelativePosition::below;
-  } else {
-    return DisplayRelativePosition::none;
-  }
-}
-
-std::string bd::DisplayConfigurationUtils::getDisplayRelativePositionString(DisplayRelativePosition pos) {
-  switch (pos) {
-    case DisplayRelativePosition::left:
-      return "left";
-    case DisplayRelativePosition::right:
-      return "right";
-    case DisplayRelativePosition::above:
-      return "above";
-    case DisplayRelativePosition::below:
-      return "below";
-    default:
-      return "none";
-  }
-}

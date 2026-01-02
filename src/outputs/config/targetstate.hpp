@@ -29,7 +29,7 @@ namespace bd::Outputs::Config {
         bool isMirroring() const;
         bool isPrimary() const;
         qreal getScale() const;
-        quint8 getTransform() const;
+        quint16 getTransform() const;
         QSize getResultingDimensions() const;
         uint32_t getAdaptiveSync() const;
 
@@ -45,7 +45,7 @@ namespace bd::Outputs::Config {
         void setPosition(QPoint position);
         void setPrimary(bool primary);
         void setScale(qreal scale);
-        void setTransform(quint8 transform);
+        void setTransform(quint16 transform);
         void setAdaptiveSync(uint32_t adaptiveSync);
 
         void updateResultingDimensions();
@@ -63,7 +63,7 @@ namespace bd::Outputs::Config {
         bool m_primary;
         QPoint m_position;
         qreal m_scale;
-        quint8 m_transform;
+        quint16 m_transform;
         uint32_t m_adaptive_sync;
     };
 }

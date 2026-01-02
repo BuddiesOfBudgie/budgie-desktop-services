@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QPoint>
 #include <QSize>
 #include <QSharedPointer>
 
@@ -21,16 +22,18 @@ namespace bd::Outputs::Config {
         static QSharedPointer<Action> mode(const QString& serial, QSize dimensions, qulonglong refresh,
                                              QObject *parent = nullptr);
 
-        static QSharedPointer<Action> setPositionAnchor(const QString& serial, QString relative, HorizontalAnchor::Type horizontal,
-                          VerticalAnchor::Type vertical, QObject *parent = nullptr);
-
         static QSharedPointer<Action> scale(const QString& serial, qreal scale,  QObject *parent = nullptr);
 
-        static QSharedPointer<Action> transform(const QString& serial, quint8 transform, QObject *parent = nullptr);
+        static QSharedPointer<Action> transform(const QString& serial, quint16 transform, QObject *parent = nullptr);
 
         static QSharedPointer<Action> adaptiveSync(const QString& serial, uint32_t adaptiveSync, QObject *parent = nullptr);
 
         static QSharedPointer<Action> primary(const QString& serial, QObject *parent = nullptr);
+
+        static QSharedPointer<Action> absolutePosition(const QString& serial, QPoint position, QObject *parent = nullptr);
+
+        static QSharedPointer<Action> positionAnchor(const QString& serial, QString relative, HorizontalAnchor::Type horizontal,
+            VerticalAnchor::Type vertical, QObject *parent = nullptr);
 
         ~Action() = default;
 
@@ -40,11 +43,12 @@ namespace bd::Outputs::Config {
         bool isPrimary() const;
         QString getRelative() const;
         QSize getDimensions() const;
+        QPoint getAbsolutePosition() const;
         qulonglong getRefresh() const;
         HorizontalAnchor::Type getHorizontalAnchor() const;
         VerticalAnchor::Type getVerticalAnchor() const;
         qreal getScale() const;
-        quint8 getTransform() const;
+        quint16 getTransform() const;
         uint32_t getAdaptiveSync() const;
 
     protected:
@@ -65,15 +69,18 @@ namespace bd::Outputs::Config {
         QSize m_dimensions;
         qulonglong m_refresh;
 
-        // Position Anchor
+        // Position Anchor (relative)
         HorizontalAnchor::Type m_horizontal_anchor;
         VerticalAnchor::Type m_vertical_anchor;
+
+        // Position (absolute)
+        QPoint m_absolute_position;
 
         // Scale
         qreal m_scale;
 
         // Transform
-        quint8 m_transform;
+        quint16 m_transform;
 
         // Adaptive Sync
         uint32_t m_adaptive_sync;

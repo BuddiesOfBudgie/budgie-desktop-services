@@ -10,6 +10,7 @@ namespace bd::Outputs::Config {
 
     public:
         enum Type {
+            SetAbsolutePosition,
             SetAdaptiveSync,
             SetGamma,
             SetMirrorOf,

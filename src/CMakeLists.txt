@@ -14,9 +14,14 @@ ecm_add_qtwayland_client_protocol(
 
 set(budgie-desktop-services_SRCS
   # Config
-  config/display.cpp
-  config/display.hpp
-  config/format.hpp
+  config/outputs/global_preferences.cpp
+  config/outputs/global_preferences.hpp
+  config/outputs/group.cpp
+  config/outputs/group.hpp
+  config/outputs/output.cpp
+  config/outputs/output.hpp
+  config/outputs/state.cpp
+  config/outputs/state.hpp
   config/utils.cpp
   config/utils.hpp
   # DBus Services
@@ -34,6 +39,7 @@ set(budgie-desktop-services_SRCS
   outputs/config/targetstate.cpp
   outputs/config/targetstate.hpp
   # Output
+  outputs/types.cpp
   outputs/types.hpp
   # Output (wlroots-specific)
   outputs/wlr/configuration.cpp
