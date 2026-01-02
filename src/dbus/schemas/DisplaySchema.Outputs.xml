@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node name="/org/buddiesofbudgie/Services/Outputs">
     <interface name="org.buddiesofbudgie.Services.Outputs">
-        <property name="AvailableOutputs" type="as" access="read"/>
-        <property name="GlobalRect" type="a{sv}" access="read">
+        <property name="availableOutputs" type="as" access="read"/>
+        <property name="globalRect" type="a{sv}" access="read">
             <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
         </property>
-        <property name="PrimaryOutput" type="s" access="read"/>
-        <property name="PrimaryOutputRect" type="a{sv}" access="read">
+        <property name="primaryOutput" type="s" access="read"/>
+        <property name="primaryOutputRect" type="a{sv}" access="read">
             <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
         </property>
     </interface>

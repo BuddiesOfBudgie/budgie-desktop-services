@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node name="/org/buddiesofbudgie/Services/Outputs/Output/Modes/Mode">
     <interface name="org.buddiesofbudgie.Services.OutputMode">
-        <property name="Available" type="b" access="read"/>
-        <property name="Current" type="b" access="read"/>
-        <property name="Height" type="i" access="read"/>
-        <property name="Id" type="s" access="read"/>
-        <property name="Preferred" type="b" access="read"/>
-        <property name="RefreshRate" type="t" access="read"/>
-        <property name="Width" type="i" access="read"/>
+        <property name="available" type="b" access="read"/>
+        <property name="current" type="b" access="read"/>
+        <property name="height" type="i" access="read"/>
+        <property name="id" type="s" access="read"/>
+        <property name="preferred" type="b" access="read"/>
+        <property name="refreshRate" type="t" access="read"/>
+        <property name="width" type="i" access="read"/>
         <signal name="availabilityChanged">
             <arg name="available" type="b"/>
         </signal>

@@ -1,33 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <node name="/org/buddiesofbudgie/Services/Outputs/Output">
     <interface name="org.buddiesofbudgie.Services.Output">
-        <property name="AdaptiveSync" type="u" access="read"/>
-        <property name="BuiltIn" type="b" access="read"/>
-        <property name="CurrentMode" type="(siitb)" access="read">
+        <property name="adaptiveSync" type="u" access="read"/>
+        <property name="builtIn" type="b" access="read"/>
+        <property name="currentMode" type="(siitb)" access="read">
             <annotation name="org.qtproject.QtDBus.QtTypeName" value="bd::Outputs::OutputModeInfo"/>
         </property>
-        <property name="Description" type="s" access="read"/>
-        <property name="Enabled" type="b" access="read"/>
-        <property name="Height" type="i" access="read"/>
-        <property name="Make" type="s" access="read"/>
-        <property name="MirrorOf" type="s" access="read"/>
-        <property name="Model" type="s" access="read"/>
-        <property name="Modes" type="a{s(siitb)}" access="read">
+        <property name="description" type="s" access="read"/>
+        <property name="enabled" type="b" access="read"/>
+        <property name="height" type="i" access="read"/>
+        <property name="make" type="s" access="read"/>
+        <property name="mirrorOf" type="s" access="read"/>
+        <property name="model" type="s" access="read"/>
+        <property name="modes" type="a{s(siitb)}" access="read">
             <annotation name="org.qtproject.QtDBus.QtTypeName" value="bd::Outputs::OutputModesMap"/>
         </property>
-        <property name="Name" type="s" access="read"/>
-        <property name="Primary" type="b" access="read"/>
-        <property name="RefreshRate" type="t" access="read"/>
-        <property name="Scale" type="d" access="read"/>
-        <property name="Serial" type="s" access="read"/>
-        <property name="Transform" type="y" access="read"/>
-        <property name="Width" type="i" access="read"/>
-        <property name="X" type="i" access="read"/>
-        <property name="Y" type="i" access="read"/>
+        <property name="name" type="s" access="read"/>
+        <property name="primary" type="b" access="read"/>
+        <property name="refreshRate" type="t" access="read"/>
+        <property name="scale" type="d" access="read"/>
+        <property name="serial" type="s" access="read"/>
+        <property name="transform" type="y" access="read"/>
+        <property name="width" type="i" access="read"/>
+        <property name="x" type="i" access="read"/>
+        <property name="y" type="i" access="read"/>
         <!-- Read-only properties for anchoring and relative positioning -->
-        <property name="HorizontalAnchor" type="s" access="read"/>
-        <property name="VerticalAnchor" type="s" access="read"/>
-        <property name="RelativeTo" type="s" access="read"/>
+        <property name="horizontalAnchor" type="s" access="read"/>
+        <property name="verticalAnchor" type="s" access="read"/>
+        <property name="relativeTo" type="s" access="read"/>
         <signal name="PropertyChanged">
             <arg name="property" type="s"/>
             <arg name="value" type="v"/>
