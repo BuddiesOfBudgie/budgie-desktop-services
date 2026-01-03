@@ -5,13 +5,13 @@ steps:
     image: registry.fedoraproject.org/fedora:rawhide
     commands:
       - dnf install -y \
-          'cmake' \
-          'extra-cmake-modules' \
-          'gcc-c++' \
-          'kwayland-devel' \
-          'qt6-qtbase-devel' \
-          'qt6-qtwayland-devel' \
-          'toml11-devel' \
-          'wayland-devel'
+          cmake \
+          extra-cmake-modules \
+          gcc-c++ \
+          kwayland-devel \
+          qt6-qtbase-devel \
+          qt6-qtwayland-devel \
+          toml11-devel \
+          wayland-devel
       - cmake -DCMAKE_INSTALL_PREFIX=/usr -S . -B build -G Ninja
       - cmake --build build -v
