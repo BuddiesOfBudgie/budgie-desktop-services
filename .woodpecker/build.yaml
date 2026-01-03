@@ -1,5 +1,8 @@
 when:
-  - branch: main
+  - event: push
+    branch: main
+  - event: pull_request
+    branch: main
 steps:
   - name: Compilation Test
     image: registry.fedoraproject.org/fedora:rawhide
