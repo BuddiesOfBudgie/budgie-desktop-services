@@ -9,6 +9,7 @@ steps:
           extra-cmake-modules
           gcc-c++
           kwayland-devel
+          ninja-build
           qt6-qtbase-devel
           qt6-qtwayland-devel
           toml11-devel
