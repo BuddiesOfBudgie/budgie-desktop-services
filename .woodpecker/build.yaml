@@ -1,0 +1,18 @@
+when:
+  - branch: main
+steps:
+  - name: Compilation Test
+    image: registry.fedoraproject.org/fedora:rawhide
+    commands:
+      - dnf install -y \
+          'cmake(KWayland)' \
+          'cmake(Qt6Core)' \
+          'cmake(Qt6DBus)' \
+          'cmake(Qt6WaylandClient)' \
+          'cmake(toml11)' \
+          'pkgconfig(wayland-client)' \
+          cmake \
+          extra-cmake-modules \
+          gcc-c++
+      - cmake -DCMAKE_INSTALL_PREFIX=/usr -S . -B build -G Ninja
+      - cmake --build build -v
