@@ -4,15 +4,14 @@ steps:
   - name: Compilation Test
     image: registry.fedoraproject.org/fedora:rawhide
     commands:
-      - dnf install -y --setopt=optional_metadata_types=filelists,comps,updateinfo \
-          'cmake(KWayland)' \
-          'cmake(Qt6Core)' \
-          'cmake(Qt6DBus)' \
-          'cmake(Qt6WaylandClient)' \
-          'cmake(toml11)' \
-          'pkgconfig(wayland-client)' \
-          cmake \
-          extra-cmake-modules \
-          gcc-c++
+      - dnf install -y \
+          'cmake' \
+          'extra-cmake-modules' \
+          'gcc-c++' \
+          'kwayland-devel' \
+          'qt6-qtbase-devel' \
+          'qt6-qtwayland-devel' \
+          'toml11-devel' \
+          'wayland-devel'
       - cmake -DCMAKE_INSTALL_PREFIX=/usr -S . -B build -G Ninja
       - cmake --build build -v
