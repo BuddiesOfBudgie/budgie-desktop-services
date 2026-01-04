@@ -5,17 +5,7 @@ when:
     branch: main
 steps:
   - name: Compilation Test
-    image: registry.fedoraproject.org/fedora:rawhide
+    image: quay.io/buddiesofbudgie/ci-optimized-images:budgie-desktop-services
     commands:
-      - dnf install -y
-          cmake
-          extra-cmake-modules
-          gcc-c++
-          kwayland-devel
-          ninja-build
-          qt6-qtbase-devel
-          qt6-qtwayland-devel
-          toml11-devel
-          wayland-devel
       - cmake -DCMAKE_INSTALL_PREFIX=/usr -S . -B build -G Ninja
       - cmake --build build -v
