@@ -374,6 +374,7 @@ namespace bd::Outputs::Wlr {
                 m_adaptive_sync = static_cast<QtWayland::zwlr_output_head_v1::adaptive_sync_state>(value.toInt());
                 qDebug() << "Setting adaptive sync on head" << getIdentifier() << "to" << m_adaptive_sync;
                 emit adaptiveSyncChanged(m_adaptive_sync);
+                emit stateChanged();
                 break;
             case MetaHeadProperty::Property::Description:
                 m_description = value.toString();
@@ -411,6 +412,7 @@ namespace bd::Outputs::Wlr {
                 m_scale = value.toDouble();
                 qDebug() << "Setting scale on head" << getIdentifier() << "to" << m_scale;
                 emit scaleChanged(m_scale);
+                emit stateChanged();
                 break;
             case MetaHeadProperty::Property::SerialNumber:
                 m_serial = value.toString();
@@ -421,6 +423,7 @@ namespace bd::Outputs::Wlr {
                 m_transform = value.toInt();
                 qDebug() << "Setting transform on head" << getIdentifier() << "to" << m_transform;
                 emit transformChanged(m_transform);
+                emit stateChanged();
                 break;
             // None or invalid property
             case MetaHeadProperty::Property::None:
