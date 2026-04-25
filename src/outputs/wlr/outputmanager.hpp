@@ -43,6 +43,7 @@ namespace bd::Outputs::Wlr {
 
         KWayland::Client::Registry*                   m_registry;
         QList<QSharedPointer<bd::Outputs::Wlr::MetaHead>> m_heads;
+        bool                                          m_inhead = false;
         uint32_t                                      m_serial;
         bool                                          m_has_serial;
         uint32_t                                      m_version;

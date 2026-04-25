@@ -227,10 +227,17 @@ namespace bd::Outputs::Wlr {
     // Setters
 
     void MetaHead::setHead(::zwlr_output_head_v1 *wlr_head) {
+
+        // check if wlroots is just reannouncing the same head (i.e. after a resume)
+        if (m_head && m_head->getWlrHead() == wlr_head) {
+            return;
+        }
+
         auto head = new bd::Outputs::Wlr::Head(this, wlr_head);
         m_head = QSharedPointer<bd::Outputs::Wlr::Head>(head);
         m_is_available = true;
         emit headAvailable();
+
         connect(head, &bd::Outputs::Wlr::Head::headFinished, this, &MetaHead::headDisconnected);
         connect(head, &bd::Outputs::Wlr::Head::modeAdded, this, &MetaHead::addMode);
         connect(head, &bd::Outputs::Wlr::Head::modeChanged, this, &MetaHead::currentZwlrModeChanged);
@@ -295,7 +302,7 @@ namespace bd::Outputs::Wlr {
                     m_output_modes.removeOne(mode_ptr);
 
                     matching_mode_is_current = (m_current_mode == mode_ptr);
-                    
+
                     break;
                 }
             }

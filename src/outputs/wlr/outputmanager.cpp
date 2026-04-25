@@ -15,28 +15,31 @@ namespace bd::Outputs::Wlr {
 
     // Overridden methods from QtWayland::zwlr_output_manager_v1
     void OutputManager::zwlr_output_manager_v1_head(zwlr_output_head_v1* wlr_head) {
+        // resolve the identity of the existing heads
+        for (const auto& existingHead : m_heads) {
+            if (existingHead->getWlrHead().has_value() && existingHead->getWlrHead().value() == wlr_head) {
+                qDebug() << "previously known head - updating to use the existing head" << existingHead->getIdentifier();
+                existingHead->setHead(wlr_head);
+                return;
+            }
+        }
+
+        // need to create the metahead if not previously known about
         auto head = new bd::Outputs::Wlr::MetaHead(nullptr);
         qInfo() << "OutputManager::zwlr_output_manager_v1_head with id:" << head->getIdentifier() << ", description:" << head->description();
 
         connect(head, &bd::Outputs::Wlr::MetaHead::headAvailable, this, [this, head]() {
+            if (m_inhead) {
+                qDebug() << "head processing already in progress, skipping";
+                return;
+            }
+            m_inhead=true;
             qDebug() << "Head available for output: " << head->getIdentifier();
-            bool headAlreadyExists = false;
-            for (const auto& existingHead : m_heads) {
-                qDebug() << "Checking existing head: " << existingHead->getIdentifier();
-                if (existingHead->getIdentifier() == head->getIdentifier()) {
-                qDebug() << "Head already exists for output: " << head->getIdentifier();
-                headAlreadyExists = true;
-                existingHead->setHead(head->getWlrHead().value());
-                break;
-                }
-            }
+            auto sharedHead = QSharedPointer<bd::Outputs::Wlr::MetaHead>(head);
+            m_heads.append(sharedHead);
+            emit headAdded(sharedHead);
 
-            if (!headAlreadyExists) {
-                qDebug() << "Adding new head for output: " << head->getIdentifier();
-                auto sharedHead = QSharedPointer<bd::Outputs::Wlr::MetaHead>(head);
-                m_heads.append(sharedHead);
-                emit headAdded(sharedHead);
-            }
+            m_inhead=false;
         });
 
         head->setHead(wlr_head);
